@@ -66,8 +66,8 @@ Expected: both commands print versions. Current planning probe printed Cargo and
 Run:
 
 ```bash
-pnpm create tauri-app /tmp/framside-tauri-prereq-check --template react-ts --manager pnpm --identifier no.framside.hello --tauri-version 2 --yes
-rm -rf /tmp/framside-tauri-prereq-check
+pnpm create tauri-app /tmp/lysbilde-tauri-prereq-check --template react-ts --manager pnpm --identifier no.lysbilde.app --tauri-version 2 --yes
+rm -rf /tmp/lysbilde-tauri-prereq-check
 ```
 
 Expected: if the command reports missing `webkit2gtk` or `rsvg2`, install the Linux prerequisites from the official Tauri docs before running the desktop app:
@@ -119,7 +119,7 @@ Expected: no output before scaffolding. If there is unrelated user work, stop an
 Run:
 
 ```bash
-pnpm create tauri-app . --template react-ts --manager pnpm --identifier no.framside.hello --tauri-version 2 --yes --force
+pnpm create tauri-app . --template react-ts --manager pnpm --identifier no.lysbilde.app --tauri-version 2 --yes --force
 ```
 
 Expected: template files are created in the current directory. Existing `AGENTS.md` and `docs/` remain present.
@@ -253,7 +253,7 @@ Expected: commit succeeds.
 Set `README.md` to exactly:
 
 ~~~markdown
-# Framside
+# Lysbilde
 
 Minimal Tauri 2 desktop app built with React and TypeScript.
 

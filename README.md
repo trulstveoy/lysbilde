@@ -1,4 +1,4 @@
-# Framside
+# Lysbilde
 
 Minimal Tauri 2 desktop app built with React and TypeScript.
 

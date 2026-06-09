@@ -49,13 +49,13 @@ Create a minimal Tauri 2 desktop application with React and TypeScript that disp
 ## Open Decisions
 
 - Frontend template: React + TypeScript.
-- Package manager: decide during planning based on installed local tooling.
+- Package manager: pnpm.
 
 ## Execution Checklist
 
 - [x] Confirm frontend template: React + TypeScript.
-- [ ] Confirm package manager.
-- [ ] Write implementation plan in `docs/plans/0001-tauri-hello-world-plan.md`.
+- [x] Confirm package manager: pnpm.
+- [x] Write implementation plan in `docs/plans/0001-tauri-hello-world-plan.md`.
 - [ ] Scaffold Tauri app.
 - [ ] Replace default screen with "Hello World" if needed.
 - [ ] Verify development run command.

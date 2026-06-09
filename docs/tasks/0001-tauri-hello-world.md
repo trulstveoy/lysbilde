@@ -51,6 +51,12 @@ Create a minimal Tauri 2 desktop application with React and TypeScript that disp
 - Frontend template: React + TypeScript.
 - Package manager: pnpm.
 
+## Prerequisite Findings
+
+- 2026-06-09: Node.js `v25.1.0`, pnpm `10.30.3`, Cargo `1.96.0`, and rustc `1.96.0` are available in the local worktree environment.
+- 2026-06-09: `pnpm create tauri-app /tmp/framside-tauri-prereq-check --template react-ts --manager pnpm --identifier no.framside.hello --tauri-version 2 --yes` completed, but reported missing Linux desktop prerequisites: `webkit2gtk` and `rsvg2`.
+- 2026-06-09: Passwordless `sudo` is not available (`sudo -n true` requires a password), so installing the Tauri Linux desktop prerequisites is blocked in this execution environment. Desktop runtime verification remains blocked until `libwebkit2gtk-4.1-dev` and `librsvg2-dev` are installed along with the other Tauri Linux prerequisite packages.
+
 ## Execution Checklist
 
 - [x] Confirm frontend template: React + TypeScript.

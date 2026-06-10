@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 import type { Slide } from "../domain/project";
 
@@ -31,6 +32,30 @@ function SlideThumbnail({
     "--thumb-bg": background,
     "--thumb-accent": accent,
   } as CSSProperties;
+
+  if (slide?.filePath && !slide.missing) {
+    return (
+      <div
+        className={[
+          "slide-thumbnail",
+          "slide-thumbnail--html",
+          compact ? "slide-thumbnail--compact" : "",
+          selected ? "slide-thumbnail--selected" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <iframe
+          className="slide-thumbnail-preview"
+          loading="lazy"
+          sandbox="allow-same-origin"
+          src={convertFileSrc(slide.filePath)}
+          title={`Preview: ${slide.title}`}
+        />
+        <span className="slide-thumbnail-number">{index + 1}</span>
+      </div>
+    );
+  }
 
   if (slide?.thumbnailPath) {
     return (

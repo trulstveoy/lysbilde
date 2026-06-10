@@ -70,9 +70,6 @@ function ProjectScreen({
             <Button onClick={onImport} size="small">
               Add slides
             </Button>
-            <Button onClick={onImport} size="small">
-              Import
-            </Button>
           </div>
         </header>
         {project.slides.some((slide) => slide.missing) && (

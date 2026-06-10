@@ -629,6 +629,31 @@ body {
   object-fit: cover;
 }
 
+.slide-thumbnail--html {
+  background: #050508;
+}
+
+.slide-thumbnail-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 960px;
+  height: 620px;
+  border: 0;
+  background: #fff;
+  pointer-events: none;
+  transform: scale(0.19);
+  transform-origin: top left;
+}
+
+.project-card-thumb .slide-thumbnail-preview {
+  transform: scale(0.15);
+}
+
+.slide-thumbnail--compact .slide-thumbnail-preview {
+  transform: scale(0.045);
+}
+
 .slide-thumbnail-line {
   display: block;
   height: 3px;

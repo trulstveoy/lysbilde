@@ -35,16 +35,23 @@ function rel(value: number, total: number) {
   return Math.max(0, Math.min(1, Number((value / total).toFixed(4))));
 }
 
-function resizeAnnotationFromNode<T extends Exclude<SlideAnnotation, { type: "arrow" }>>(
-  annotation: T,
-  node: Konva.Node,
-  size: { width: number; height: number },
-): T {
+function resizeNode(node: Konva.Node) {
   const nextWidth = Math.max(24, node.width() * node.scaleX());
   const nextHeight = Math.max(24, node.height() * node.scaleY());
   node.width(nextWidth);
   node.height(nextHeight);
   node.scale({ x: 1, y: 1 });
+  return { nextWidth, nextHeight };
+}
+
+function resizeAnnotationFromNode<
+  T extends Exclude<SlideAnnotation, { type: "arrow" }>,
+>(
+  annotation: T,
+  node: Konva.Node,
+  size: { width: number; height: number },
+): T {
+  const { nextWidth, nextHeight } = resizeNode(node);
 
   return {
     ...annotation,
@@ -251,8 +258,9 @@ function AnnotationLayer({
                 x: rel(event.target.x(), size.width),
                 y: rel(event.target.y(), size.height),
               }),
-            onTransform: (event: Konva.KonvaEventObject<Event>) =>
-              onChange(resizeAnnotationFromNode(annotation, event.target, size)),
+            onTransform: (event: Konva.KonvaEventObject<Event>) => {
+              resizeNode(event.target);
+            },
             onTransformEnd: (event: Konva.KonvaEventObject<Event>) => {
               onChange(resizeAnnotationFromNode(annotation, event.target, size));
             },

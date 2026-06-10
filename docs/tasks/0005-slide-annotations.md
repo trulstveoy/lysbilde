@@ -317,6 +317,7 @@ Do not implement these in the first version:
 - [x] Sticky notes and text boxes can be edited directly in place without a popup.
 - [x] Canvas text is hidden while sticky notes and text boxes are edited inline.
 - [x] Text keeps a fixed font size while sticky notes and text boxes are resized.
+- [x] Resize updates the local Konva node during drag and saves project data only when transform ends.
 - [x] Keyboard input inside inline text editors does not advance slides.
 - [x] Arrow endpoints can be dragged independently.
 - [x] Fullscreen view mode is read-only.
@@ -354,6 +355,7 @@ Do not implement these in the first version:
 - [x] Add component coverage confirming sticky note text edits inline without `window.prompt`.
 - [x] Add component coverage confirming canvas text is hidden while inline text editing.
 - [x] Add component coverage confirming resize converts scale into width and height for text annotations.
+- [x] Add regression coverage confirming resize does not save on every transform event.
 - [x] Add regression coverage confirming Space inside text fields does not advance slides.
 - [x] Add component coverage confirming annotation tools are icon-only controls with accessible labels.
 - [x] Add component coverage confirming the Annotate toggle is not rendered.

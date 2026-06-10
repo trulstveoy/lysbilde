@@ -11,6 +11,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SlideAnnotation } from "../../domain/project";
 import AnnotationLayer from "./AnnotationLayer";
 
+const transformNode = vi.hoisted(() => ({
+  height: vi.fn((value?: number) => value ?? 75),
+  scale: vi.fn(),
+  scaleX: vi.fn(() => 1.5),
+  scaleY: vi.fn(() => 1.2),
+  width: vi.fn((value?: number) => value ?? 200),
+  x: vi.fn(() => 100),
+  y: vi.fn(() => 50),
+}));
+
 vi.mock("react-konva", () => {
   const Node = ({
     children,
@@ -18,6 +28,7 @@ vi.mock("react-konva", () => {
     onClick,
     onDblClick,
     onTransform,
+    onTransformEnd,
     text,
   }: {
     children?: ReactNode;
@@ -25,6 +36,7 @@ vi.mock("react-konva", () => {
     onClick?: () => void;
     onDblClick?: () => void;
     onTransform?: (event: unknown) => void;
+    onTransformEnd?: (event: unknown) => void;
     text?: string;
   }) => (
     <div
@@ -33,15 +45,12 @@ vi.mock("react-konva", () => {
       onDoubleClick={onDblClick}
       onMouseEnter={() =>
         onTransform?.({
-          target: {
-            height: () => 75,
-            scale: vi.fn(),
-            scaleX: () => 1.5,
-            scaleY: () => 1.2,
-            width: () => 200,
-            x: () => 100,
-            y: () => 50,
-          },
+          target: transformNode,
+        })
+      }
+      onMouseLeave={() =>
+        onTransformEnd?.({
+          target: transformNode,
         })
       }
     >
@@ -64,6 +73,13 @@ vi.mock("react-konva", () => {
 
 afterEach(() => {
   cleanup();
+  transformNode.height.mockClear();
+  transformNode.scale.mockClear();
+  transformNode.scaleX.mockClear();
+  transformNode.scaleY.mockClear();
+  transformNode.width.mockClear();
+  transformNode.x.mockClear();
+  transformNode.y.mockClear();
   vi.restoreAllMocks();
 });
 
@@ -187,7 +203,7 @@ describe("AnnotationLayer", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps text size fixed while resizing text annotations", () => {
+  it("keeps text size fixed while resizing text annotations without saving on every transform", () => {
     const onChange = vi.fn();
     const annotations: SlideAnnotation[] = [
       {
@@ -215,6 +231,13 @@ describe("AnnotationLayer", () => {
     );
 
     fireEvent.mouseEnter(screen.getByTestId("annotation-text-1"));
+
+    expect(transformNode.width).toHaveBeenCalledWith(300);
+    expect(transformNode.height).toHaveBeenCalledWith(90);
+    expect(transformNode.scale).toHaveBeenCalledWith({ x: 1, y: 1 });
+    expect(onChange).not.toHaveBeenCalled();
+
+    fireEvent.mouseLeave(screen.getByTestId("annotation-text-1"));
 
     expect(onChange).toHaveBeenCalledWith({
       ...annotations[0],

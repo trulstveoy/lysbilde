@@ -937,6 +937,15 @@ body {
   background: var(--color-surface);
 }
 
+.annotation-icon-button {
+  width: 34px;
+  min-width: 34px;
+  padding-inline: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .annotation-toggle {
   display: inline-flex;
   align-items: center;

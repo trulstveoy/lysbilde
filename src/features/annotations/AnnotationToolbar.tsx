@@ -1,3 +1,11 @@
+import {
+  ArrowUpRight,
+  Square,
+  StickyNote,
+  Trash2,
+  Type,
+} from "lucide-react";
+
 import Button from "../../components/Button";
 import type { AnnotationKind } from "../../domain/annotations";
 import type { AnnotationColor } from "../../domain/project";
@@ -48,17 +56,45 @@ function AnnotationToolbar(props: AnnotationToolbarProps) {
           type="checkbox"
         />
       </label>
-      <Button disabled={disabled} onClick={() => props.onAdd("sticky-note")} size="small">
-        Add sticky note
+      <Button
+        aria-label="Add sticky note"
+        className="annotation-icon-button"
+        disabled={disabled}
+        onClick={() => props.onAdd("sticky-note")}
+        size="small"
+        title="Add sticky note"
+      >
+        <StickyNote aria-hidden="true" size={16} strokeWidth={2} />
       </Button>
-      <Button disabled={disabled} onClick={() => props.onAdd("text-box")} size="small">
-        Add text box
+      <Button
+        aria-label="Add text box"
+        className="annotation-icon-button"
+        disabled={disabled}
+        onClick={() => props.onAdd("text-box")}
+        size="small"
+        title="Add text box"
+      >
+        <Type aria-hidden="true" size={16} strokeWidth={2} />
       </Button>
-      <Button disabled={disabled} onClick={() => props.onAdd("rectangle")} size="small">
-        Add rectangle
+      <Button
+        aria-label="Add rectangle"
+        className="annotation-icon-button"
+        disabled={disabled}
+        onClick={() => props.onAdd("rectangle")}
+        size="small"
+        title="Add rectangle"
+      >
+        <Square aria-hidden="true" size={16} strokeWidth={2} />
       </Button>
-      <Button disabled={disabled} onClick={() => props.onAdd("arrow")} size="small">
-        Add arrow
+      <Button
+        aria-label="Add arrow"
+        className="annotation-icon-button"
+        disabled={disabled}
+        onClick={() => props.onAdd("arrow")}
+        size="small"
+        title="Add arrow"
+      >
+        <ArrowUpRight aria-hidden="true" size={16} strokeWidth={2} />
       </Button>
       <div aria-label="Annotation colors" className="annotation-colors">
         {colors.map((color) => (
@@ -78,11 +114,14 @@ function AnnotationToolbar(props: AnnotationToolbarProps) {
         ))}
       </div>
       <Button
+        aria-label="Delete selected annotation"
+        className="annotation-icon-button"
         disabled={disabled || !props.selectedId}
         onClick={props.onDeleteSelected}
         size="small"
+        title="Delete selected annotation"
       >
-        Delete selected annotation
+        <Trash2 aria-hidden="true" size={16} strokeWidth={2} />
       </Button>
     </div>
   );

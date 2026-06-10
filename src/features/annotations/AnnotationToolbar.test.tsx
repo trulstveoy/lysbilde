@@ -55,4 +55,39 @@ describe("AnnotationToolbar", () => {
     expect(onAdd).toHaveBeenCalledWith("sticky-note");
     expect(onDeleteSelected).toHaveBeenCalledOnce();
   });
+
+  it("uses icon-only controls for annotation tools", () => {
+    render(
+      <AnnotationToolbar
+        color="#fff59d"
+        mode="annotate"
+        onAdd={vi.fn()}
+        onColorChange={vi.fn()}
+        onDeleteSelected={vi.fn()}
+        onModeChange={vi.fn()}
+        onVisibilityChange={vi.fn()}
+        selectedId="a1"
+        visible={true}
+      />,
+    );
+
+    const stickyNote = screen.getByRole("button", { name: "Add sticky note" });
+    const textBox = screen.getByRole("button", { name: "Add text box" });
+    const rectangle = screen.getByRole("button", { name: "Add rectangle" });
+    const arrow = screen.getByRole("button", { name: "Add arrow" });
+    const deleteButton = screen.getByRole("button", {
+      name: "Delete selected annotation",
+    });
+
+    expect(stickyNote).toHaveAttribute("title", "Add sticky note");
+    expect(textBox).toHaveAttribute("title", "Add text box");
+    expect(rectangle).toHaveAttribute("title", "Add rectangle");
+    expect(arrow).toHaveAttribute("title", "Add arrow");
+    expect(deleteButton).toHaveAttribute("title", "Delete selected annotation");
+    expect(stickyNote).toHaveTextContent("");
+    expect(textBox).toHaveTextContent("");
+    expect(rectangle).toHaveTextContent("");
+    expect(arrow).toHaveTextContent("");
+    expect(deleteButton).toHaveTextContent("");
+  });
 });

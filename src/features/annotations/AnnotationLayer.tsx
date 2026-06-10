@@ -183,6 +183,7 @@ function AnnotationLayer({
 
             return (
               <Group
+                data-testid={`annotation-${annotation.id}`}
                 draggable={editable}
                 key={annotation.id}
                 onClick={() => onSelect(annotation.id)}
@@ -210,34 +211,40 @@ function AnnotationLayer({
                 {editable && selectedId === annotation.id && (
                   <>
                     <Circle
+                      data-testid={`annotation-${annotation.id}-start`}
                       draggable
                       fill="#ffffff"
-                      onDragEnd={(event) =>
+                      hitStrokeWidth={18}
+                      onDragEnd={(event) => {
+                        event.cancelBubble = true;
                         onChange({
                           ...annotation,
                           x: rel(event.target.x(), size.width),
                           y: rel(event.target.y(), size.height),
-                        })
-                      }
-                      radius={7}
+                        });
+                      }}
+                      radius={9}
                       stroke={annotation.color}
-                      strokeWidth={2}
+                      strokeWidth={3}
                       x={startX}
                       y={startY}
                     />
                     <Circle
+                      data-testid={`annotation-${annotation.id}-end`}
                       draggable
                       fill="#ffffff"
-                      onDragEnd={(event) =>
+                      hitStrokeWidth={18}
+                      onDragEnd={(event) => {
+                        event.cancelBubble = true;
                         onChange({
                           ...annotation,
                           endX: rel(event.target.x(), size.width),
                           endY: rel(event.target.y(), size.height),
-                        })
-                      }
-                      radius={7}
+                        });
+                      }}
+                      radius={9}
                       stroke={annotation.color}
-                      strokeWidth={2}
+                      strokeWidth={3}
                       x={endX}
                       y={endY}
                     />

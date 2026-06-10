@@ -38,6 +38,7 @@ vi.mock("react-konva", () => {
     "data-testid": testId,
     onClick,
     onDblClick,
+    onDragEnd,
     onTransform,
     onTransformEnd,
     text,
@@ -46,6 +47,7 @@ vi.mock("react-konva", () => {
     "data-testid"?: string;
     onClick?: () => void;
     onDblClick?: () => void;
+    onDragEnd?: (event: unknown) => void;
     onTransform?: (event: unknown) => void;
     onTransformEnd?: (event: unknown) => void;
     text?: string;
@@ -54,6 +56,20 @@ vi.mock("react-konva", () => {
       data-testid={testId}
       onClick={onClick}
       onDoubleClick={onDblClick}
+      onDragEnd={(event) => {
+        const konvaEvent = {
+          cancelBubble: false,
+          target: {
+            position: vi.fn(),
+            x: () => 400,
+            y: () => 300,
+          },
+        };
+        onDragEnd?.(konvaEvent);
+        if (konvaEvent.cancelBubble) {
+          event.stopPropagation();
+        }
+      }}
       onMouseEnter={() =>
         onTransform?.({
           target: transformNode,
@@ -265,6 +281,112 @@ describe("AnnotationLayer", () => {
       y: 0.1,
       width: 0.3,
       height: 0.18,
+    });
+  });
+
+  it("shows draggable arrow endpoint handles when an arrow is selected", () => {
+    const annotations: SlideAnnotation[] = [
+      {
+        id: "arrow-1",
+        type: "arrow",
+        x: 0.1,
+        y: 0.2,
+        endX: 0.4,
+        endY: 0.5,
+        strokeWidth: 4,
+        color: "#d32f2f",
+      },
+    ];
+
+    render(
+      <AnnotationLayer
+        annotations={annotations}
+        mode="annotate"
+        onChange={vi.fn()}
+        onSelect={vi.fn()}
+        selectedId="arrow-1"
+        size={{ width: 1000, height: 500 }}
+        visible={true}
+      />,
+    );
+
+    expect(screen.getByTestId("annotation-arrow-1-start")).toBeInTheDocument();
+    expect(screen.getByTestId("annotation-arrow-1-end")).toBeInTheDocument();
+  });
+
+  it("updates arrow endpoints and angle by dragging handles", () => {
+    const onChange = vi.fn();
+    const annotation: SlideAnnotation = {
+      id: "arrow-1",
+      type: "arrow",
+      x: 0.1,
+      y: 0.2,
+      endX: 0.4,
+      endY: 0.5,
+      strokeWidth: 4,
+      color: "#d32f2f",
+    };
+
+    render(
+      <AnnotationLayer
+        annotations={[annotation]}
+        mode="annotate"
+        onChange={onChange}
+        onSelect={vi.fn()}
+        selectedId="arrow-1"
+        size={{ width: 1000, height: 500 }}
+        visible={true}
+      />,
+    );
+
+    fireEvent.dragEnd(screen.getByTestId("annotation-arrow-1-end"));
+    fireEvent.dragEnd(screen.getByTestId("annotation-arrow-1-start"));
+
+    expect(onChange).toHaveBeenNthCalledWith(1, {
+      ...annotation,
+      endX: 0.4,
+      endY: 0.6,
+    });
+    expect(onChange).toHaveBeenNthCalledWith(2, {
+      ...annotation,
+      x: 0.4,
+      y: 0.6,
+    });
+  });
+
+  it("moves the whole arrow by dragging the arrow body", () => {
+    const onChange = vi.fn();
+    const annotation: SlideAnnotation = {
+      id: "arrow-1",
+      type: "arrow",
+      x: 0.1,
+      y: 0.2,
+      endX: 0.4,
+      endY: 0.5,
+      strokeWidth: 4,
+      color: "#d32f2f",
+    };
+
+    render(
+      <AnnotationLayer
+        annotations={[annotation]}
+        mode="annotate"
+        onChange={onChange}
+        onSelect={vi.fn()}
+        selectedId="arrow-1"
+        size={{ width: 1000, height: 500 }}
+        visible={true}
+      />,
+    );
+
+    fireEvent.dragEnd(screen.getByTestId("annotation-arrow-1"));
+
+    expect(onChange).toHaveBeenCalledWith({
+      ...annotation,
+      x: 0.5,
+      y: 0.8,
+      endX: 0.8,
+      endY: 1,
     });
   });
 });

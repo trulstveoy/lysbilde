@@ -853,6 +853,12 @@ body {
   background: #000;
 }
 
+.presenter-screen--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+}
+
 .presenter-stage {
   position: relative;
   flex: 1 1 auto;

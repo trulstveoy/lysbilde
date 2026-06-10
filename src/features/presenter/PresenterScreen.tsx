@@ -57,6 +57,18 @@ function PresenterScreen({
     }
   }
 
+  async function exitPresenter() {
+    if (fullscreen) {
+      setFullscreen(false);
+      try {
+        await getCurrentWindow().setFullscreen(false);
+      } catch {
+        // Browser preview cannot control a Tauri window.
+      }
+    }
+    onExit();
+  }
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "ArrowRight" || event.key === " " || event.key === "PageDown") {
@@ -70,7 +82,7 @@ function PresenterScreen({
         if (fullscreen) {
           void toggleFullscreen();
         } else {
-          onExit();
+          void exitPresenter();
         }
       }
     }
@@ -80,7 +92,15 @@ function PresenterScreen({
   });
 
   return (
-    <div className="presenter-screen">
+    <div
+      className={[
+        "presenter-screen",
+        fullscreen ? "presenter-screen--fullscreen" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      data-testid="presenter-screen"
+    >
       <div className="presenter-stage" onClick={next}>
         <button
           aria-label="Previous slide"
@@ -116,36 +136,38 @@ function PresenterScreen({
           {total === 0 ? 0 : currentIndex + 1} / {total}
         </div>
       </div>
-      <footer className="presenter-controls">
-        <Button disabled={currentIndex === 0} onClick={previous} size="small">
-          ←
-        </Button>
-        <Button
-          disabled={currentIndex >= total - 1}
-          onClick={next}
-          size="small"
-        >
-          →
-        </Button>
-        <div className="dot-nav">
-          {project.slides.map((item, index) => (
-            <button
-              aria-label={`Go to slide ${index + 1}`}
-              className={index === currentIndex ? "dot dot--active" : "dot"}
-              key={item.id}
-              onClick={() => onIndexChange(selectSlideIndex(index, total))}
-              type="button"
-            />
-          ))}
-        </div>
-        <span className="presenter-title">{slide?.title ?? project.title}</span>
-        <Button onClick={toggleFullscreen} size="small">
-          {fullscreen ? "Window" : "Fullscreen"}
-        </Button>
-        <Button onClick={onExit} size="small">
-          Exit
-        </Button>
-      </footer>
+      {!fullscreen && (
+        <footer className="presenter-controls">
+          <Button disabled={currentIndex === 0} onClick={previous} size="small">
+            ←
+          </Button>
+          <Button
+            disabled={currentIndex >= total - 1}
+            onClick={next}
+            size="small"
+          >
+            →
+          </Button>
+          <div className="dot-nav">
+            {project.slides.map((item, index) => (
+              <button
+                aria-label={`Go to slide ${index + 1}`}
+                className={index === currentIndex ? "dot dot--active" : "dot"}
+                key={item.id}
+                onClick={() => onIndexChange(selectSlideIndex(index, total))}
+                type="button"
+              />
+            ))}
+          </div>
+          <span className="presenter-title">{slide?.title ?? project.title}</span>
+          <Button onClick={toggleFullscreen} size="small">
+            Fullscreen
+          </Button>
+          <Button onClick={() => void exitPresenter()} size="small">
+            Exit
+          </Button>
+        </footer>
+      )}
     </div>
   );
 }

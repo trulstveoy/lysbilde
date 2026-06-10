@@ -322,6 +322,7 @@ Do not implement these in the first version:
 - [x] Keyboard input inside inline text editors does not advance slides.
 - [x] Arrow endpoints can be dragged independently.
 - [x] Arrows can be resized and angled by dragging start and end handles.
+- [x] Arrow endpoints render live while dragging and save when released.
 - [x] Fullscreen view mode is read-only.
 - [x] Annotation editing is available only in windowed presenter mode with chrome.
 - [x] Windowed presenter mode is always annotation-ready without an Annotate toggle.
@@ -361,6 +362,7 @@ Do not implement these in the first version:
 - [x] Add regression coverage confirming child nodes resize locally with the transformed group.
 - [x] Add component coverage confirming selected arrows show draggable start and end handles.
 - [x] Add component coverage confirming arrow handles update start/end coordinates independently.
+- [x] Add regression coverage confirming arrow endpoint drag updates local points before save.
 - [x] Add component coverage confirming dragging the arrow body moves both endpoints together.
 - [x] Add regression coverage confirming Space inside text fields does not advance slides.
 - [x] Add component coverage confirming annotation tools are icon-only controls with accessible labels.
@@ -370,7 +372,7 @@ Do not implement these in the first version:
 
 ## Verification Evidence
 
-- `pnpm test`: 16 test files passed, 48 tests passed.
+- `pnpm test`: 16 test files passed, 49 tests passed.
 - `pnpm build`: TypeScript and Vite production build passed. Vite reports the existing chunk-size warning after adding Konva.
 - `cargo test --manifest-path src-tauri/Cargo.toml`: 3 Rust tests passed.
 

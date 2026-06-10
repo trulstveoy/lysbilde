@@ -31,6 +31,9 @@ const transformChildren = vi.hoisted(() => [
     width: vi.fn(),
   },
 ]);
+const arrowNode = vi.hoisted(() => ({
+  points: vi.fn(),
+}));
 
 vi.mock("react-konva", () => {
   const Node = ({
@@ -39,8 +42,10 @@ vi.mock("react-konva", () => {
     onClick,
     onDblClick,
     onDragEnd,
+    onDragMove,
     onTransform,
     onTransformEnd,
+    ref,
     text,
   }: {
     children?: ReactNode;
@@ -48,43 +53,65 @@ vi.mock("react-konva", () => {
     onClick?: () => void;
     onDblClick?: () => void;
     onDragEnd?: (event: unknown) => void;
+    onDragMove?: (event: unknown) => void;
     onTransform?: (event: unknown) => void;
     onTransformEnd?: (event: unknown) => void;
+    ref?: (node: unknown) => void;
     text?: string;
-  }) => (
-    <div
-      data-testid={testId}
-      onClick={onClick}
-      onDoubleClick={onDblClick}
-      onDragEnd={(event) => {
-        const konvaEvent = {
-          cancelBubble: false,
-          target: {
-            position: vi.fn(),
-            x: () => 400,
-            y: () => 300,
-          },
-        };
-        onDragEnd?.(konvaEvent);
-        if (konvaEvent.cancelBubble) {
-          event.stopPropagation();
+  }) => {
+    if (testId === "annotation-arrow-1-line") {
+      ref?.(arrowNode);
+    }
+
+    return (
+      <div
+        data-testid={testId}
+        onClick={onClick}
+        onDoubleClick={onDblClick}
+        onDrag={(event) => {
+          const konvaEvent = {
+            cancelBubble: false,
+            target: {
+              position: vi.fn(),
+              x: () => 400,
+              y: () => 300,
+            },
+          };
+          onDragMove?.(konvaEvent);
+          if (konvaEvent.cancelBubble) {
+            event.stopPropagation();
+          }
+        }}
+        onDragEnd={(event) => {
+          const konvaEvent = {
+            cancelBubble: false,
+            target: {
+              position: vi.fn(),
+              x: () => 400,
+              y: () => 300,
+            },
+          };
+          onDragEnd?.(konvaEvent);
+          if (konvaEvent.cancelBubble) {
+            event.stopPropagation();
+          }
+        }}
+        onMouseEnter={() =>
+          onTransform?.({
+            target: transformNode,
+          })
         }
-      }}
-      onMouseEnter={() =>
-        onTransform?.({
-          target: transformNode,
-        })
-      }
-      onMouseLeave={() =>
-        onTransformEnd?.({
-          target: transformNode,
-        })
-      }
-    >
-      {text}
-      {children}
-    </div>
-  );
+        onMouseLeave={() =>
+          onTransformEnd?.({
+            target: transformNode,
+          })
+        }
+      >
+        {text}
+        {children}
+      </div>
+    );
+  };
 
   return {
     Arrow: Node,
@@ -112,6 +139,7 @@ afterEach(() => {
     child.height.mockClear();
     child.width.mockClear();
   });
+  arrowNode.points.mockClear();
   vi.restoreAllMocks();
 });
 
@@ -352,6 +380,37 @@ describe("AnnotationLayer", () => {
       x: 0.4,
       y: 0.6,
     });
+  });
+
+  it("renders arrow endpoint drag live without saving until release", () => {
+    const onChange = vi.fn();
+    const annotation: SlideAnnotation = {
+      id: "arrow-1",
+      type: "arrow",
+      x: 0.1,
+      y: 0.2,
+      endX: 0.4,
+      endY: 0.5,
+      strokeWidth: 4,
+      color: "#d32f2f",
+    };
+
+    render(
+      <AnnotationLayer
+        annotations={[annotation]}
+        mode="annotate"
+        onChange={onChange}
+        onSelect={vi.fn()}
+        selectedId="arrow-1"
+        size={{ width: 1000, height: 500 }}
+        visible={true}
+      />,
+    );
+
+    fireEvent.drag(screen.getByTestId("annotation-arrow-1-end"));
+
+    expect(arrowNode.points).toHaveBeenCalledWith([100, 100, 400, 300]);
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it("moves the whole arrow by dragging the arrow body", () => {

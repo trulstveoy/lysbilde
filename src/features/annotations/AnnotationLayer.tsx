@@ -88,6 +88,7 @@ function AnnotationLayer({
 }: AnnotationLayerProps) {
   const transformerRef = useRef<Konva.Transformer | null>(null);
   const nodeRefs = useRef<Record<string, Konva.Node | null>>({});
+  const arrowRefs = useRef<Record<string, Konva.Arrow | null>>({});
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftText, setDraftText] = useState("");
@@ -155,6 +156,18 @@ function AnnotationLayer({
     setDraftText("");
   }
 
+  function updateArrowPoints(
+    annotation: Extract<SlideAnnotation, { type: "arrow" }>,
+    points: { endX?: number; endY?: number; startX?: number; startY?: number },
+  ) {
+    arrowRefs.current[annotation.id]?.points([
+      points.startX ?? px(annotation.x, size.width),
+      points.startY ?? px(annotation.y, size.height),
+      points.endX ?? px(annotation.endX, size.width),
+      points.endY ?? px(annotation.endY, size.height),
+    ]);
+  }
+
   return (
     <div className="annotation-layer">
       <Stage
@@ -201,10 +214,14 @@ function AnnotationLayer({
                 }}
               >
                 <Arrow
+                  data-testid={`annotation-${annotation.id}-line`}
                   fill={annotation.color}
                   points={[startX, startY, endX, endY]}
                   pointerLength={12}
                   pointerWidth={12}
+                  ref={(node) => {
+                    arrowRefs.current[annotation.id] = node;
+                  }}
                   stroke={annotation.color}
                   strokeWidth={annotation.strokeWidth}
                 />
@@ -215,6 +232,13 @@ function AnnotationLayer({
                       draggable
                       fill="#ffffff"
                       hitStrokeWidth={18}
+                      onDragMove={(event) => {
+                        event.cancelBubble = true;
+                        updateArrowPoints(annotation, {
+                          startX: event.target.x(),
+                          startY: event.target.y(),
+                        });
+                      }}
                       onDragEnd={(event) => {
                         event.cancelBubble = true;
                         onChange({
@@ -234,6 +258,13 @@ function AnnotationLayer({
                       draggable
                       fill="#ffffff"
                       hitStrokeWidth={18}
+                      onDragMove={(event) => {
+                        event.cancelBubble = true;
+                        updateArrowPoints(annotation, {
+                          endX: event.target.x(),
+                          endY: event.target.y(),
+                        });
+                      }}
                       onDragEnd={(event) => {
                         event.cancelBubble = true;
                         onChange({

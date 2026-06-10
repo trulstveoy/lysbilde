@@ -143,6 +143,10 @@ function PresenterScreen({
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
+      if (isEditableTarget(event.target)) {
+        return;
+      }
+
       if (event.key === "ArrowRight" || event.key === " " || event.key === "PageDown") {
         event.preventDefault();
         next();
@@ -273,6 +277,20 @@ function PresenterScreen({
 }
 
 export default PresenterScreen;
+
+function isEditableTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  const tagName = target.tagName.toLowerCase();
+  return (
+    tagName === "input" ||
+    tagName === "textarea" ||
+    tagName === "select" ||
+    target.isContentEditable
+  );
+}
 
 function annotationId() {
   return globalThis.crypto?.randomUUID?.() ?? `annotation-${Date.now()}`;

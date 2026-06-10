@@ -132,6 +132,8 @@ All annotations must support:
 
 Sticky notes and text boxes are edited inline with a textarea overlay inside the annotation box. They do not use browser popup prompts.
 
+While text editing is active, keyboard input is captured by the editor. Presenter navigation shortcuts such as Space, arrows, PageUp, and PageDown must not fire from inside editable text fields.
+
 ## Transformation Behavior
 
 Use Konva Transformer for text boxes, sticky notes, and rectangles.
@@ -311,6 +313,7 @@ Do not implement these in the first version:
 - [x] Users can add sticky notes, text boxes, rectangles, and arrows on top of a slide.
 - [x] Users can select, move, resize where applicable, edit, recolor, and delete annotations.
 - [x] Sticky notes and text boxes can be edited directly in place without a popup.
+- [x] Keyboard input inside inline text editors does not advance slides.
 - [x] Arrow endpoints can be dragged independently.
 - [x] Users can switch between view mode and annotation mode.
 - [x] Annotation mode is available only in windowed presenter mode with chrome.
@@ -343,12 +346,13 @@ Do not implement these in the first version:
 - [x] Add component coverage confirming project setup does not expose annotation controls.
 - [x] Add component coverage confirming windowed presenter exposes annotation controls and fullscreen hides them.
 - [x] Add component coverage confirming sticky note text edits inline without `window.prompt`.
+- [x] Add regression coverage confirming Space inside text fields does not advance slides.
 - [x] Verify Rust project deserialization compatibility for old project files.
 - [ ] Manually verify annotation behavior in the Tauri app using local HTML example slides on Windows.
 
 ## Verification Evidence
 
-- `pnpm test`: 16 test files passed, 41 tests passed.
+- `pnpm test`: 16 test files passed, 42 tests passed.
 - `pnpm build`: TypeScript and Vite production build passed. Vite reports the existing chunk-size warning after adding Konva.
 - `cargo test --manifest-path src-tauri/Cargo.toml`: 3 Rust tests passed.
 

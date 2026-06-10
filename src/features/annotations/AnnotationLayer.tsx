@@ -301,6 +301,7 @@ function AnnotationLayer({
           onBlur={commitTextEdit}
           onChange={(event) => setDraftText(event.target.value)}
           onKeyDown={(event) => {
+            event.stopPropagation();
             if (event.key === "Escape") {
               event.preventDefault();
               cancelTextEdit();

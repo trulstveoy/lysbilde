@@ -91,4 +91,24 @@ describe("PresenterScreen fullscreen", () => {
     expect(onExit).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Fullscreen" })).toBeInTheDocument();
   });
+
+  it("does not advance slides when space is typed inside a text field", () => {
+    const onIndexChange = vi.fn();
+
+    render(
+      <PresenterScreen
+        currentIndex={0}
+        onExit={vi.fn()}
+        onIndexChange={onIndexChange}
+        onSlideChange={vi.fn()}
+        project={project}
+      />,
+    );
+
+    const editor = document.createElement("textarea");
+    document.body.appendChild(editor);
+    fireEvent.keyDown(editor, { key: " " });
+
+    expect(onIndexChange).not.toHaveBeenCalled();
+  });
 });

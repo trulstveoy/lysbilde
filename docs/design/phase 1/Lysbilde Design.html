@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<title>Lysbilde — Design Exploration</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="macos-window.jsx"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; }
+  body { background: #111; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const F = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif';
+const T = {
+  bg: '#0c0c10', sidebar: '#101014', surface: '#17171d',
+  surfaceHover: '#1e1e27', border: 'rgba(255,255,255,0.08)',
+  borderMid: 'rgba(255,255,255,0.13)', text: '#eeeef3',
+  muted: '#888899', dim: '#404052',
+  accent: 'oklch(0.65 0.19 265)', accentGlow: 'oklch(0.65 0.19 265 / 0.25)',
+};
+
+/* ─── Primitives ─── */
+function TL() {
+  return (
+    <div style={{display:'flex',gap:7,alignItems:'center'}}>
+      {['#ff5f56','#febc2e','#27c93f'].map((c,i)=>(
+        <div key={i} style={{width:12,height:12,borderRadius:'50%',background:c,border:'0.5px solid rgba(0,0,0,0.25)'}}/>
+      ))}
+    </div>
+  );
+}
+
+function Win({w=900,h=560,title='Lysbilde',noTitlebar,children,style={}}) {
+  return (
+    <div style={{width:w,height:h,borderRadius:14,overflow:'hidden',background:T.bg,
+      boxShadow:'0 0 0 1px rgba(255,255,255,0.07),0 20px 60px rgba(0,0,0,0.75)',
+      display:'flex',flexDirection:'column',fontFamily:F,...style}}>
+      {!noTitlebar && (
+        <div style={{height:42,flexShrink:0,background:T.sidebar,
+          borderBottom:`1px solid ${T.border}`,display:'flex',
+          alignItems:'center',padding:'0 16px',gap:10,}}>
+          <TL/>
+          <div style={{flex:1,textAlign:'center',fontSize:13,fontWeight:600,
+            color:T.muted,letterSpacing:'-0.01em'}}>{title}</div>
+          <div style={{width:38}}/>
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+function Nav({items,active}) {
+  return (
+    <div style={{width:190,flexShrink:0,background:T.sidebar,
+      borderRight:`1px solid ${T.border}`,padding:'10px 0',display:'flex',
+      flexDirection:'column',overflow:'hidden'}}>
+      {items.map((item,i)=>(
+        <div key={i} style={{display:'flex',alignItems:'center',gap:8,
+          height:28,padding:'0 10px',margin:'1px 8px',borderRadius:7,
+          background:item.label===active?T.surfaceHover:'transparent',
+          fontSize:12.5,fontWeight:item.label===active?600:400,
+          color:item.label===active?T.text:T.muted}}>
+          <span style={{width:14,textAlign:'center',opacity:0.75}}>{item.icon}</span>
+          <span style={{flex:1}}>{item.label}</span>
+          {item.count&&<span style={{fontSize:11,color:T.dim}}>{item.count}</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Thumb({i,sel,w=180,h=112,label}) {
+  const palettes=[['#11111e','#6c63ff'],['#0b1a22','#00b4d8'],['#1a0f28','#a855f7'],
+    ['#0c1f0c','#22c55e'],['#1f1108','#f97316'],['#1a0b0b','#ef4444'],
+    ['#0a1525','#3b82f6'],['#1a1800','#eab308']];
+  const [bg,ac]=palettes[i%palettes.length];
+  return (
+    <div title={label} style={{width:w,height:h,borderRadius:8,background:bg,flexShrink:0,
+      border:sel?`2px solid ${T.accent}`:`1px solid rgba(255,255,255,0.09)`,
+      boxShadow:sel?`0 0 0 3px ${T.accentGlow}`:'none',
+      overflow:'hidden',position:'relative',cursor:'pointer'}}>
+      <div style={{position:'absolute',inset:0,padding:12}}>
+        <div style={{height:5,borderRadius:3,background:ac,width:'55%',marginBottom:7,opacity:0.95}}/>
+        <div style={{height:3,borderRadius:2,background:'rgba(255,255,255,0.28)',width:'80%',marginBottom:5}}/>
+        <div style={{height:3,borderRadius:2,background:'rgba(255,255,255,0.18)',width:'65%',marginBottom:5}}/>
+        <div style={{height:3,borderRadius:2,background:'rgba(255,255,255,0.12)',width:'72%'}}/>
+        {i%3===0&&<div style={{position:'absolute',bottom:12,left:12,right:12,height:28,borderRadius:5,background:ac,opacity:0.12}}/>}
+      </div>
+      <div style={{position:'absolute',bottom:6,right:8,fontSize:10,
+        color:'rgba(255,255,255,0.35)',fontFamily:F}}>{i+1}</div>
+    </div>
+  );
+}
+
+/* ─── PROJECT CARD ─── */
+function ProjCard({title,count,date,thumbIdx}) {
+  return (
+    <div style={{background:T.surface,borderRadius:12,overflow:'hidden',
+      border:`1px solid ${T.border}`,cursor:'pointer'}}>
+      <div style={{height:106,background:'#12121a',display:'flex',
+        alignItems:'center',justifyContent:'center',overflow:'hidden'}}>
+        <Thumb i={thumbIdx} w={138} h={86}/>
+      </div>
+      <div style={{padding:'10px 13px 12px'}}>
+        <div style={{fontSize:13,fontWeight:600,color:T.text,marginBottom:3}}>{title}</div>
+        <div style={{fontSize:12,color:T.muted}}>{count} slides · {date}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────── SCREENS ─────────────────────────── */
+
+function HomeGrid() {
+  const P=[{title:'Q2 Produktlansering',count:8,date:'I dag',thumbIdx:0},
+    {title:'Teknisk Gjennomgang',count:12,date:'I går',thumbIdx:1},
+    {title:'Årsrapport 2025',count:5,date:'Mandag',thumbIdx:2}];
+  return (
+    <Win w={900} h={560}>
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        <Nav active="Alle" items={[{icon:'⊞',label:'Alle',count:3},{icon:'★',label:'Stjernemerket'},
+          {icon:'↺',label:'Siste'},{icon:'⌫',label:'Papirkurv'}]}/>
+        <div style={{flex:1,overflow:'auto',padding:24}}>
+          <div style={{display:'flex',alignItems:'center',marginBottom:20}}>
+            <span style={{fontSize:16,fontWeight:700,color:T.text}}>Presentasjoner</span>
+            <div style={{flex:1}}/>
+            <button style={{background:T.accent,borderRadius:8,border:'none',
+              padding:'7px 15px',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',
+              display:'flex',alignItems:'center',gap:5,boxShadow:`0 4px 14px ${T.accentGlow}`}}>
+              <span style={{fontSize:17,lineHeight:1}}>+</span> Ny presentasjon
+            </button>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
+            {P.map((p,i)=><ProjCard key={i} {...p}/>)}
+          </div>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+function HomeList() {
+  const P=[{title:'Q2 Produktlansering',count:8,date:'I dag',size:'14 MB',t:0},
+    {title:'Teknisk Gjennomgang',count:12,date:'I går',size:'23 MB',t:1},
+    {title:'Årsrapport 2025',count:5,date:'Mandag',size:'8 MB',t:2},
+    {title:'Onboarding-guide',count:6,date:'Sist uke',size:'11 MB',t:3}];
+  return (
+    <Win w={900} h={560}>
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        <Nav active="Alle" items={[{icon:'⊞',label:'Alle',count:4},{icon:'★',label:'Stjernemerket'},
+          {icon:'↺',label:'Siste'}]}/>
+        <div style={{flex:1,overflow:'auto',padding:'16px 22px'}}>
+          <div style={{display:'flex',alignItems:'center',marginBottom:16}}>
+            <span style={{fontSize:15,fontWeight:700,color:T.text}}>Alle presentasjoner</span>
+            <div style={{flex:1}}/>
+            <button style={{background:T.accent,borderRadius:7,border:'none',
+              padding:'6px 13px',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer'}}>+ Ny</button>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 64px 80px 90px',
+            padding:'5px 10px',marginBottom:3,fontSize:11,color:T.dim,
+            borderBottom:`1px solid ${T.border}`}}>
+            {['Navn','Slides','Størrelse','Endret'].map(h=><span key={h}>{h}</span>)}
+          </div>
+          {P.map((p,i)=>(
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 64px 80px 90px',
+              padding:'9px 10px',alignItems:'center',borderRadius:8,cursor:'pointer',
+              borderBottom:`1px solid ${T.border}`}}>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <Thumb i={p.t} w={46} h={29}/>
+                <span style={{fontSize:13,fontWeight:500,color:T.text}}>{p.title}</span>
+              </div>
+              <span style={{fontSize:13,color:T.muted}}>{p.count}</span>
+              <span style={{fontSize:13,color:T.muted}}>{p.size}</span>
+              <span style={{fontSize:13,color:T.muted}}>{p.date}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+function Organizer() {
+  const slides=['Tittelside','Agenda','Marked','Produkt','Pris','Demo & Neste steg'];
+  return (
+    <Win w={900} h={560} title="Q2 Produktlansering">
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        <div style={{width:196,flexShrink:0,background:T.sidebar,
+          borderRight:`1px solid ${T.border}`,display:'flex',flexDirection:'column'}}>
+          <div style={{padding:'12px 10px 8px',flex:1,overflow:'auto'}}>
+            <div style={{fontSize:11,fontWeight:600,color:T.dim,marginBottom:8,paddingLeft:4}}>
+              {slides.length} SLIDES
+            </div>
+            {slides.map((s,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',gap:7,padding:'5px 7px',
+                borderRadius:6,background:i===0?T.surfaceHover:'transparent',cursor:'pointer',marginBottom:2}}>
+                <span style={{fontSize:10,color:T.dim,width:12,flexShrink:0}}>{i+1}</span>
+                <Thumb i={i} w={44} h={28}/>
+                <span style={{fontSize:11.5,color:i===0?T.text:T.muted,overflow:'hidden',
+                  textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{padding:12,borderTop:`1px solid ${T.border}`}}>
+            <button style={{width:'100%',padding:'9px',borderRadius:8,
+              background:T.accent,border:'none',color:'#fff',fontSize:13,
+              fontWeight:600,cursor:'pointer',boxShadow:`0 4px 14px ${T.accentGlow}`}}>
+              ▶ Presenter
+            </button>
+          </div>
+        </div>
+        <div style={{flex:1,padding:20,overflow:'auto',background:T.bg}}>
+          <div style={{display:'flex',alignItems:'center',marginBottom:16,gap:8}}>
+            {['+ Legg til','↓ Importer','⋮ Mer'].map(b=>(
+              <button key={b} style={{padding:'5px 12px',borderRadius:7,
+                border:`1px solid ${T.border}`,background:'transparent',
+                color:T.muted,fontSize:12,cursor:'pointer'}}>{b}</button>
+            ))}
+            <div style={{flex:1}}/>
+            <span style={{fontSize:11.5,color:T.dim}}>Dra for å endre rekkefølge</span>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
+            {slides.map((s,i)=>(
+              <div key={i}>
+                <Thumb i={i} sel={i===0} w={'100%'} h={120}/>
+                <div style={{marginTop:6,fontSize:12,color:T.muted,textAlign:'center'}}>{s}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+function OrganizerDrag() {
+  const slides=['Tittelside','Agenda','Marked','Produkt','Pris','Demo'];
+  return (
+    <Win w={900} h={560} title="Q2 Produktlansering">
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        <div style={{width:196,flexShrink:0,background:T.sidebar,
+          borderRight:`1px solid ${T.border}`,display:'flex',flexDirection:'column'}}>
+          <div style={{padding:'12px 10px 8px',flex:1,overflow:'auto'}}>
+            <div style={{fontSize:11,fontWeight:600,color:T.dim,marginBottom:8,paddingLeft:4}}>6 SLIDES</div>
+            {slides.map((s,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',gap:7,padding:'5px 7px',
+                borderRadius:6,cursor:'pointer',marginBottom:2,
+                opacity:i===3?0.45:1}}>
+                <span style={{fontSize:10,color:T.dim,width:12}}>{i===3?'↓':i+1}</span>
+                <Thumb i={i} w={44} h={28}/>
+                <span style={{fontSize:11.5,color:T.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{padding:12,borderTop:`1px solid ${T.border}`}}>
+            <button style={{width:'100%',padding:'9px',borderRadius:8,
+              background:T.accent,border:'none',color:'#fff',fontSize:13,fontWeight:600}}>▶ Presenter</button>
+          </div>
+        </div>
+        <div style={{flex:1,padding:20,overflow:'auto',background:T.bg}}>
+          <div style={{display:'flex',alignItems:'center',marginBottom:16,gap:8}}>
+            <span style={{fontSize:12,color:T.muted}}>Drar slide 4</span>
+            <div style={{flex:1}}/>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
+            {slides.map((s,i)=>{
+              const isDragging=i===1;
+              const isTarget=i===3;
+              return (
+                <div key={i} style={{
+                  transform:isDragging?'scale(1.06) rotate(-2deg)':'none',
+                  boxShadow:isDragging?'0 16px 40px rgba(0,0,0,0.7)':'none',
+                  opacity:isTarget?0.35:1,
+                  zIndex:isDragging?10:1,
+                  position:'relative',
+                }}>
+                  <Thumb i={i} w={'100%'} h={116}/>
+                  {isTarget&&<div style={{position:'absolute',inset:0,borderRadius:8,
+                    border:`2px dashed ${T.accent}`,background:'rgba(108,99,255,0.06)'}}/>}
+                  <div style={{marginTop:5,fontSize:12,color:T.muted,textAlign:'center'}}>{s}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+function ImportModal() {
+  return (
+    <Win w={900} h={560}>
+      <div style={{display:'flex',flex:1,overflow:'hidden',position:'relative'}}>
+        <Nav active="Alle" items={[{icon:'⊞',label:'Alle',count:3}]}/>
+        <div style={{flex:1,filter:'blur(1.5px)',opacity:0.3,padding:24}}>
+          <div style={{fontSize:16,fontWeight:700,color:T.text}}>Presentasjoner</div>
+        </div>
+        <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',
+          display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{width:460,background:T.surface,borderRadius:16,
+            border:`1px solid ${T.borderMid}`,padding:28,
+            boxShadow:'0 24px 60px rgba(0,0,0,0.7)'}}>
+            <div style={{fontSize:16,fontWeight:700,color:T.text,marginBottom:4}}>Importer HTML-slides</div>
+            <div style={{fontSize:13,color:T.muted,marginBottom:20}}>Velg én eller flere HTML-filer fra lokal disk</div>
+            <div style={{border:`2px dashed ${T.border}`,borderRadius:12,
+              padding:'24px 20px',textAlign:'center',marginBottom:18,
+              background:'rgba(255,255,255,0.015)'}}>
+              <div style={{fontSize:26,marginBottom:8}}>📄</div>
+              <div style={{fontSize:13,fontWeight:600,color:T.text,marginBottom:3}}>Slipp HTML-filer her</div>
+              <div style={{fontSize:12,color:T.muted,marginBottom:12}}>eller</div>
+              <button style={{padding:'7px 16px',borderRadius:7,
+                border:`1px solid ${T.border}`,background:T.surfaceHover,
+                color:T.text,fontSize:12,fontWeight:500,cursor:'pointer'}}>Velg filer...</button>
+            </div>
+            <div style={{marginBottom:18}}>
+              {['slide-01.html','slide-02.html','slide-03.html'].map((f,i)=>(
+                <div key={i} style={{display:'flex',alignItems:'center',gap:10,
+                  padding:'8px 0',borderBottom:`1px solid ${T.border}`}}>
+                  <span style={{fontSize:13}}>📄</span>
+                  <Thumb i={i} w={36} h={22}/>
+                  <span style={{fontSize:12.5,color:T.text,flex:1}}>{f}</span>
+                  <span style={{fontSize:12,color:T.muted}}>26 KB</span>
+                  <span style={{fontSize:16,color:T.dim,cursor:'pointer',marginLeft:6}}>×</span>
+                </div>
+              ))}
+            </div>
+            <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+              <button style={{padding:'8px 17px',borderRadius:8,border:`1px solid ${T.border}`,
+                background:'transparent',color:T.muted,fontSize:13,cursor:'pointer'}}>Avbryt</button>
+              <button style={{padding:'8px 17px',borderRadius:8,border:'none',
+                background:T.accent,color:'#fff',fontSize:13,fontWeight:600,
+                cursor:'pointer',boxShadow:`0 4px 14px ${T.accentGlow}`}}>Importer 3 slides</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+function PresentEmbedded() {
+  return (
+    <Win w={900} h={560} noTitlebar style={{position:'relative'}}>
+      <div style={{flex:1,background:'linear-gradient(145deg,#0f0f1e 0%,#141430 50%,#0a1028 100%)',
+        display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:50}}>
+        <div style={{width:8,height:8,borderRadius:'50%',background:T.accent,marginBottom:20}}/>
+        <div style={{fontSize:34,fontWeight:800,color:'#fff',textAlign:'center',
+          lineHeight:1.15,marginBottom:10,letterSpacing:'-0.03em'}}>Q2 Produktlansering</div>
+        <div style={{fontSize:17,color:'rgba(255,255,255,0.45)',textAlign:'center'}}>
+          Kvartalspresentasjon · Juni 2026
+        </div>
+      </div>
+      <div style={{height:52,flexShrink:0,background:'rgba(0,0,0,0.88)',
+        backdropFilter:'blur(20px)',borderTop:'1px solid rgba(255,255,255,0.07)',
+        display:'flex',alignItems:'center',padding:'0 22px',gap:14}}>
+        <button style={{background:'none',border:'none',color:'rgba(255,255,255,0.4)',fontSize:19,cursor:'pointer'}}>←</button>
+        <button style={{background:'none',border:'none',color:'rgba(255,255,255,0.7)',fontSize:19,cursor:'pointer'}}>→</button>
+        <div style={{flex:1,textAlign:'center',fontSize:13,color:'rgba(255,255,255,0.35)'}}>
+          1 / 6 · Q2 Produktlansering
+        </div>
+        <button style={{padding:'5px 11px',borderRadius:6,
+          border:'1px solid rgba(255,255,255,0.18)',background:'transparent',
+          color:'rgba(255,255,255,0.55)',fontSize:12,cursor:'pointer'}}>⛶ Fullskjerm</button>
+        <button style={{padding:'5px 11px',borderRadius:6,border:'none',
+          background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.55)',
+          fontSize:12,cursor:'pointer'}}>✕ Avslutt</button>
+      </div>
+    </Win>
+  );
+}
+
+function PresentFullscreen() {
+  return (
+    <div style={{width:900,height:560,borderRadius:14,overflow:'hidden',fontFamily:F,
+      background:'#000',position:'relative',
+      boxShadow:'0 0 0 1px rgba(255,255,255,0.05),0 20px 60px rgba(0,0,0,0.8)'}}>
+      <div style={{position:'absolute',inset:0,
+        background:'linear-gradient(145deg,#0f0f1e 0%,#141430 50%,#0a1028 100%)',
+        display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:60}}>
+        <div style={{width:8,height:8,borderRadius:'50%',background:T.accent,marginBottom:22}}/>
+        <div style={{fontSize:38,fontWeight:800,color:'#fff',textAlign:'center',
+          lineHeight:1.15,marginBottom:12,letterSpacing:'-0.03em'}}>Q2 Produktlansering</div>
+        <div style={{fontSize:18,color:'rgba(255,255,255,0.4)',textAlign:'center'}}>
+          Kvartalspresentasjon · Juni 2026
+        </div>
+      </div>
+      <div style={{position:'absolute',bottom:0,left:0,right:0,height:56,
+        background:'linear-gradient(transparent,rgba(0,0,0,0.7))',
+        display:'flex',alignItems:'flex-end',justifyContent:'center',paddingBottom:14,gap:20}}>
+        <button style={{background:'rgba(255,255,255,0.12)',border:'none',
+          color:'rgba(255,255,255,0.7)',width:36,height:36,borderRadius:8,
+          fontSize:18,cursor:'pointer'}}>←</button>
+        <span style={{fontSize:13,color:'rgba(255,255,255,0.4)',lineHeight:'36px'}}>1 / 6</span>
+        <button style={{background:'rgba(255,255,255,0.12)',border:'none',
+          color:'rgba(255,255,255,0.7)',width:36,height:36,borderRadius:8,
+          fontSize:18,cursor:'pointer'}}>→</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── STORYBOARD ─── */
+function SBFrame({step,title,caption,children}) {
+  return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10,flexShrink:0}}>
+      <div style={{width:230,height:148,background:T.bg,borderRadius:10,overflow:'hidden',
+        border:`1px solid ${T.border}`,boxShadow:'0 8px 28px rgba(0,0,0,0.5)',position:'relative',
+        display:'flex',flexDirection:'column'}}>
+        <div style={{height:22,flexShrink:0,background:T.sidebar,
+          borderBottom:`1px solid ${T.border}`,display:'flex',alignItems:'center',padding:'0 8px',gap:5}}>
+          {['#ff5f56','#febc2e','#27c93f'].map((c,i)=>(
+            <div key={i} style={{width:7,height:7,borderRadius:'50%',background:c}}/>
+          ))}
+          <div style={{flex:1,textAlign:'center',fontSize:9,color:T.dim}}>Lysbilde</div>
+        </div>
+        <div style={{flex:1,position:'relative',overflow:'hidden'}}>{children}</div>
+        <div style={{position:'absolute',bottom:6,right:7,width:18,height:18,borderRadius:'50%',
+          background:T.accent,display:'flex',alignItems:'center',justifyContent:'center',
+          fontSize:10,fontWeight:700,color:'#fff'}}>{step}</div>
+      </div>
+      <div style={{width:230,textAlign:'center'}}>
+        <div style={{fontSize:12.5,fontWeight:700,color:'#ddd',marginBottom:2}}>{title}</div>
+        <div style={{fontSize:11,color:'#666',lineHeight:1.4}}>{caption}</div>
+      </div>
+    </div>
+  );
+}
+
+const Arrow = ()=>(
+  <div style={{display:'flex',alignItems:'center',paddingBottom:36,color:'#444',fontSize:18,flexShrink:0}}>›</div>
+);
+
+const SB1=()=>(
+  <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%',gap:7,padding:14}}>
+    <div style={{fontSize:20,color:T.accent}}>✦</div>
+    <div style={{fontSize:12,fontWeight:700,color:T.text}}>Lysbilde</div>
+    <div style={{fontSize:10,color:T.muted,textAlign:'center'}}>Ingen presentasjoner ennå</div>
+    <div style={{marginTop:6,padding:'5px 12px',borderRadius:6,background:T.accent,
+      color:'#fff',fontSize:10,fontWeight:600}}>+ Ny presentasjon</div>
+  </div>
+);
+const SB2=()=>(
+  <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',padding:10}}>
+    <div style={{background:T.surface,borderRadius:9,border:`1px solid ${T.borderMid}`,
+      padding:'11px 13px',width:'100%'}}>
+      <div style={{fontSize:11,fontWeight:700,color:T.text,marginBottom:7}}>Ny presentasjon</div>
+      <div style={{height:24,borderRadius:5,border:`1px solid ${T.accent}`,
+        background:'rgba(108,99,255,0.06)',padding:'0 8px',display:'flex',
+        alignItems:'center',fontSize:10,color:T.muted,marginBottom:8}}>Q2 Produktlansering</div>
+      <div style={{display:'flex',gap:5,justifyContent:'flex-end'}}>
+        <div style={{height:20,width:44,borderRadius:5,border:`1px solid ${T.border}`}}/>
+        <div style={{height:20,width:52,borderRadius:5,background:T.accent}}/>
+      </div>
+    </div>
+  </div>
+);
+const SB3=()=>(
+  <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',padding:10}}>
+    <div style={{background:T.surface,borderRadius:9,border:`1px solid ${T.borderMid}`,
+      padding:'11px 12px',width:'100%'}}>
+      <div style={{fontSize:11,fontWeight:700,color:T.text,marginBottom:6}}>Velg HTML-filer</div>
+      <div style={{border:`1.5px dashed ${T.border}`,borderRadius:7,padding:'10px 8px',
+        textAlign:'center',marginBottom:6}}>
+        <div style={{fontSize:14,marginBottom:3}}>📄</div>
+        <div style={{fontSize:9,color:T.muted}}>Slipp HTML-filer her</div>
+      </div>
+      <div style={{padding:'4px 8px',borderRadius:5,border:`1px solid ${T.border}`,
+        background:T.surfaceHover,fontSize:9.5,color:T.text,textAlign:'center'}}>Velg filer...</div>
+    </div>
+  </div>
+);
+const SB4=()=>(
+  <div style={{padding:'10px 12px',height:'100%',display:'flex',flexDirection:'column',gap:5}}>
+    <div style={{fontSize:10,fontWeight:600,color:T.muted,marginBottom:2}}>Importerer slides...</div>
+    {[70,45,15].map((w,i)=>(
+      <div key={i} style={{display:'flex',alignItems:'center',gap:7}}>
+        <Thumb i={i} w={34} h={21}/>
+        <div style={{flex:1}}>
+          <div style={{fontSize:9.5,color:T.text,marginBottom:3}}>slide-0{i+1}.html</div>
+          <div style={{height:3,borderRadius:2,background:'rgba(255,255,255,0.08)'}}>
+            <div style={{height:'100%',width:`${w}%`,background:T.accent,borderRadius:2,
+              transition:'width 1s ease'}}/>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+const SB5=()=>(
+  <div style={{padding:'10px 12px',height:'100%'}}>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:5}}>
+      {Array.from({length:6},(_,i)=><Thumb key={i} i={i} w={56} h={35}/>)}
+    </div>
+    <div style={{fontSize:9.5,color:T.muted,textAlign:'center',marginTop:8}}>6 slides importert</div>
+  </div>
+);
+const SB6=()=>(
+  <div style={{padding:'10px 12px',height:'100%'}}>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:5}}>
+      {Array.from({length:6},(_,i)=>(
+        <div key={i} style={{
+          transform:i===1?'scale(1.07) rotate(-2.5deg)':'none',
+          opacity:i===3?0.4:1,
+          boxShadow:i===1?'0 8px 20px rgba(0,0,0,0.6)':'none',
+        }}>
+          <Thumb i={i} w={56} h={35}/>
+        </div>
+      ))}
+    </div>
+    <div style={{fontSize:9.5,color:T.muted,textAlign:'center',marginTop:8}}>↕ Dra for å sortere</div>
+  </div>
+);
+const SB7=()=>(
+  <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%',gap:8}}>
+    <div style={{padding:'6px 16px',borderRadius:7,background:T.accent,color:'#fff',
+      fontSize:11,fontWeight:700,boxShadow:`0 5px 18px ${T.accentGlow}`}}>▶ Presenter</div>
+    <div style={{fontSize:9.5,color:T.muted}}>Starter presentasjonsmodus...</div>
+  </div>
+);
+const SB8=()=>(
+  <div style={{height:'100%',
+    background:'linear-gradient(145deg,#0f0f1e,#0a1028)',
+    display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:14}}>
+    <div style={{fontSize:13,fontWeight:800,color:'#fff',textAlign:'center',marginBottom:6,letterSpacing:'-0.02em'}}>
+      Q2 Produktlansering
+    </div>
+    <div style={{fontSize:9.5,color:'rgba(255,255,255,0.4)',marginBottom:14}}>Kvartalspresentasjon</div>
+    <div style={{display:'flex',gap:14,alignItems:'center'}}>
+      <span style={{fontSize:15,color:'rgba(255,255,255,0.35)'}}>←</span>
+      <span style={{fontSize:9.5,color:'rgba(255,255,255,0.3)'}}>1 / 6</span>
+      <span style={{fontSize:15,color:'rgba(255,255,255,0.35)'}}>→</span>
+    </div>
+  </div>
+);
+
+/* ─── ROOT ─── */
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="storyboard" title="Storyboard" subtitle="Brukerreisen fra første åpning til fullskjerm-presentasjon">
+        <DCArtboard id="sb" label="Full brukerreise · 8 steg" width={2220} height={320}>
+          <div style={{display:'flex',alignItems:'flex-start',gap:12,padding:'22px 24px',
+            background:'#141418',height:320,fontFamily:F}}>
+            <SBFrame step={1} title="Åpner appen" caption="Tom tilstand — ingen presentasjoner"><SB1/></SBFrame>
+            <Arrow/>
+            <SBFrame step={2} title="Ny presentasjon" caption="Navngir og oppretter prosjektet"><SB2/></SBFrame>
+            <Arrow/>
+            <SBFrame step={3} title="Velger filer" caption="Velger HTML-filer fra lokal disk"><SB3/></SBFrame>
+            <Arrow/>
+            <SBFrame step={4} title="Importerer" caption="Thumbnails genereres automatisk"><SB4/></SBFrame>
+            <Arrow/>
+            <SBFrame step={5} title="Slide-oversikt" caption="Alle slides klare og forhåndsvist"><SB5/></SBFrame>
+            <Arrow/>
+            <SBFrame step={6} title="Omorganiserer" caption="Dra og slipp for å endre rekkefølge"><SB6/></SBFrame>
+            <Arrow/>
+            <SBFrame step={7} title="Starter" caption="Klikker Presenter-knappen"><SB7/></SBFrame>
+            <Arrow/>
+            <SBFrame step={8} title="Presenterer" caption="Piltaster og klikk for navigasjon"><SB8/></SBFrame>
+          </div>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="home" title="Prosjektoversikt" subtitle="To layoutvarianter for startsiden">
+        <DCArtboard id="home-a" label="A · Rutenett-visning" width={900} height={560}><HomeGrid/></DCArtboard>
+        <DCArtboard id="home-b" label="B · Listevisning" width={900} height={560}><HomeList/></DCArtboard>
+      </DCSection>
+
+      <DCSection id="org" title="Slide-organisator" subtitle="Thumbnail-rutenett med sidefelt · to tilstander">
+        <DCArtboard id="org-a" label="A · Standard visning" width={900} height={560}><Organizer/></DCArtboard>
+        <DCArtboard id="org-drag" label="B · Under drag-resortering" width={900} height={560}><OrganizerDrag/></DCArtboard>
+        <DCArtboard id="import" label="C · Import-modal" width={900} height={560}><ImportModal/></DCArtboard>
+      </DCSection>
+
+      <DCSection id="present" title="Presentasjonsmodus" subtitle="Innebygd visning og fullskjerm">
+        <DCArtboard id="pres-emb" label="A · Innebygd visning" width={900} height={560}><PresentEmbedded/></DCArtboard>
+        <DCArtboard id="pres-full" label="B · Fullskjerm-modus" width={900} height={560}><PresentFullscreen/></DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>

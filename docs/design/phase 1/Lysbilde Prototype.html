@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<title>Lysbilde — Interaktiv prototype</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif}
+body{background:radial-gradient(ellipse at 40% 40%,#1a1830 0%,#0e0e14 60%);display:flex;align-items:center;justify-content:center;overflow:hidden}
+@keyframes fadeIn{from{transform:scale(0.98)}to{transform:scale(1)}}
+@keyframes slideUp{from{transform:translateY(10px)}to{transform:translateY(0)}}
+@keyframes dropIn{from{transform:translateY(-8px) scale(0.97)}to{transform:translateY(0) scale(1)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+const F = '-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif';
+const C = {
+  bg:'#0c0c10', sb:'#101014', sur:'#17171d', surH:'#1e1e27',
+  bd:'rgba(255,255,255,0.08)', bdM:'rgba(255,255,255,0.14)',
+  tx:'#eeeef3', mu:'#888899', di:'#40404f',
+  ac:'oklch(0.65 0.19 265)', acG:'oklch(0.65 0.19 265 / 0.28)',
+  acD:'oklch(0.65 0.19 265 / 0.14)',
+};
+
+/* ── MOCK DATA ── */
+const makeSlides = (n, offset=0) => Array.from({length:n},(_,i)=>({
+  id:offset+i+1, title:['Tittelside','Agenda','Markedsanalyse','Produktet','Priser','Demo & Neste steg','Teknisk arkitektur','Veikart'][i%8],
+  file:`slide-${String(i+1).padStart(2,'0')}.html`,
+}));
+const PROJECTS = [
+  {id:1,title:'Q2 Produktlansering',count:6,date:'I dag',size:'14 MB',slides:makeSlides(6)},
+  {id:2,title:'Teknisk Gjennomgang',count:8,date:'I går',size:'23 MB',slides:makeSlides(8,10)},
+  {id:3,title:'Årsrapport 2025',count:5,date:'Mandag',size:'8 MB',slides:makeSlides(5,20)},
+];
+
+/* ── PRIMITIVES ── */
+const TL = () => (
+  <div style={{display:'flex',gap:7,alignItems:'center'}}>
+    {['#ff5f56','#febc2e','#27c93f'].map((c,i)=>(
+      <div key={i} style={{width:12,height:12,borderRadius:'50%',background:c,border:'0.5px solid rgba(0,0,0,0.25)'}}/>
+    ))}
+  </div>
+);
+
+function Btn({children,primary,small,danger,onClick,disabled,style={}}) {
+  const base={padding:small?'5px 12px':'8px 17px',borderRadius:8,border:'none',
+    fontSize:small?12:13,fontWeight:600,cursor:disabled?'default':'pointer',
+    transition:'opacity .15s,filter .15s',fontFamily:F,...style};
+  const theme = primary?{background:C.ac,color:'#fff',boxShadow:`0 4px 14px ${C.acG}`}
+    :danger?{background:'oklch(0.55 0.2 15)',color:'#fff'}
+    :{background:C.surH,border:`1px solid ${C.bdM}`,color:C.tx};
+  return <button style={{...base,...theme,opacity:disabled?0.4:1}} onClick={onClick}>{children}</button>;
+}
+
+function Thumb({i,sel,w=180,h=112,drag}) {
+  const pals=[['#0f0f1e','#6c63ff'],['#0b1922','#00b4d8'],['#180f28','#a855f7'],
+    ['#0c1f0c','#22c55e'],['#1e1108','#f97316'],['#1a0b0b','#ef4444'],
+    ['#0a1525','#3b82f6'],['#1a1800','#eab308']];
+  const [bg,ac]=pals[i%pals.length];
+  return (
+    <div style={{width:w,height:h,borderRadius:8,background:bg,flexShrink:0,
+      border:sel?`2px solid ${C.ac}`:`1px solid rgba(255,255,255,0.09)`,
+      boxShadow:drag?'0 16px 40px rgba(0,0,0,0.7)':sel?`0 0 0 3px ${C.acD}`:'none',
+      overflow:'hidden',position:'relative',transform:drag?'scale(1.05)rotate(-1.5deg)':'none',
+      transition:'transform .15s,box-shadow .15s',cursor:'pointer'}}>
+      <div style={{position:'absolute',inset:0,padding:12}}>
+        <div style={{height:5,borderRadius:3,background:ac,width:'52%',marginBottom:7,opacity:.95}}/>
+        <div style={{height:3,borderRadius:2,background:'rgba(255,255,255,.28)',width:'80%',marginBottom:5}}/>
+        <div style={{height:3,borderRadius:2,background:'rgba(255,255,255,.18)',width:'65%',marginBottom:5}}/>
+        <div style={{height:3,borderRadius:2,background:'rgba(255,255,255,.12)',width:'73%'}}/>
+        {i%3===0&&<div style={{position:'absolute',bottom:11,left:11,right:11,height:24,borderRadius:5,background:ac,opacity:.1}}/>}
+      </div>
+      <span style={{position:'absolute',bottom:6,right:8,fontSize:10,color:'rgba(255,255,255,.3)',fontFamily:F}}>{i+1}</span>
+    </div>
+  );
+}
+
+/* ── FAKE SLIDES FOR PRESENT MODE ── */
+function SlideView({index,title}) {
+  const designs=[
+    /* 0 title */
+    <div style={{width:'100%',height:'100%',background:'linear-gradient(145deg,#0f0f1e 0%,#141430 55%,#0a1028 100%)',
+      display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:60}}>
+      <div style={{width:8,height:8,borderRadius:'50%',background:C.ac,marginBottom:22}}/>
+      <div style={{fontSize:40,fontWeight:800,color:'#fff',textAlign:'center',lineHeight:1.15,marginBottom:12,letterSpacing:'-0.03em'}}>Q2 Produktlansering</div>
+      <div style={{fontSize:18,color:'rgba(255,255,255,.4)'}}>Kvartalspresentasjon · Juni 2026</div>
+      <div style={{marginTop:40,display:'flex',gap:8,alignItems:'center'}}>
+        <div style={{width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>→</div>
+      </div>
+    </div>,
+    /* 1 agenda */
+    <div style={{width:'100%',height:'100%',background:'#0d0d14',display:'flex',padding:'48px 64px',gap:48}}>
+      <div style={{flex:1}}>
+        <div style={{fontSize:12,fontWeight:700,letterSpacing:'0.1em',color:C.ac,marginBottom:16}}>AGENDA</div>
+        <div style={{fontSize:30,fontWeight:800,color:'#fff',marginBottom:32,letterSpacing:'-0.02em'}}>Dagens plan</div>
+        {['Markedssituasjon','Produktlansering','Teknisk demo','Priser og tilgjengelighet','Q&A'].map((t,i)=>(
+          <div key={i} style={{display:'flex',gap:16,alignItems:'center',marginBottom:14}}>
+            <div style={{width:28,height:28,borderRadius:'50%',background:C.acD,border:`1px solid ${C.ac}`,
+              display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:C.ac,flexShrink:0}}>{i+1}</div>
+            <span style={{fontSize:17,color:'rgba(255,255,255,.8)',fontWeight:500}}>{t}</span>
+          </div>
+        ))}
+      </div>
+    </div>,
+    /* 2 market */
+    <div style={{width:'100%',height:'100%',background:'#080e18',display:'flex',flexDirection:'column',padding:'48px 64px'}}>
+      <div style={{fontSize:12,fontWeight:700,letterSpacing:'0.1em',color:'#00b4d8',marginBottom:10}}>MARKEDSANALYSE</div>
+      <div style={{fontSize:28,fontWeight:800,color:'#fff',marginBottom:28,letterSpacing:'-0.02em'}}>Markedet vokser 34% YoY</div>
+      <div style={{display:'flex',gap:14,flex:1,alignItems:'flex-end'}}>
+        {[45,62,58,75,82,100].map((h,i)=>(
+          <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+            <div style={{width:'100%',background:'rgba(0,180,216,.15)',borderRadius:'4px 4px 0 0',
+              height:`${h*1.4}px`,border:`1px solid rgba(0,180,216,.2)`,position:'relative'}}>
+              <div style={{position:'absolute',inset:0,background:'linear-gradient(0deg,rgba(0,180,216,.3),transparent)',borderRadius:'4px 4px 0 0'}}/>
+            </div>
+            <span style={{fontSize:11,color:'rgba(255,255,255,.4)'}}>{['Q1','Q2','Q3','Q4','Q1','Q2'][i]}</span>
+          </div>
+        ))}
+      </div>
+    </div>,
+    /* 3 product */
+    <div style={{width:'100%',height:'100%',background:'#0f0a1e',display:'flex',flexDirection:'column',padding:'48px 64px'}}>
+      <div style={{fontSize:12,fontWeight:700,letterSpacing:'0.1em',color:'#a855f7',marginBottom:10}}>PRODUKTET</div>
+      <div style={{fontSize:28,fontWeight:800,color:'#fff',marginBottom:30,letterSpacing:'-0.02em'}}>Introduserer Lysbilde</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,flex:1}}>
+        {[{icon:'⚡',t:'Lynrask',d:'Åpner og presenterer HTML-filer uten konvertering'},
+          {icon:'🗂',t:'Organisert',d:'Dra og slipp for å sortere slides'},
+          {icon:'⌨',t:'Tastaturvennlig',d:'Full navigasjon med piltaster og mellomrom'}].map((f,i)=>(
+          <div key={i} style={{background:'rgba(168,85,247,.06)',borderRadius:12,padding:20,
+            border:'1px solid rgba(168,85,247,.15)'}}>
+            <div style={{fontSize:24,marginBottom:12}}>{f.icon}</div>
+            <div style={{fontSize:16,fontWeight:700,color:'#fff',marginBottom:6}}>{f.t}</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,.5)',lineHeight:1.5}}>{f.d}</div>
+          </div>
+        ))}
+      </div>
+    </div>,
+    /* 4 pricing */
+    <div style={{width:'100%',height:'100%',background:'#0c1208',display:'flex',flexDirection:'column',padding:'48px 64px'}}>
+      <div style={{fontSize:12,fontWeight:700,letterSpacing:'0.1em',color:'#22c55e',marginBottom:10}}>PRISER</div>
+      <div style={{fontSize:28,fontWeight:800,color:'#fff',marginBottom:30,letterSpacing:'-0.02em'}}>Enkle priser. Full tilgang.</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
+        {[{n:'Gratis',p:'0',f:['5 presentasjoner','Lokal lagring','Grunnleggende nav']},
+          {n:'Pro',p:'99',f:['Ubegrenset','Annotasjoner','Eksport','Prioritert støtte'],ac:true},
+          {n:'Team',p:'299',f:['Alt i Pro','Deling','Samarbeid','Admin-panel']}].map((t,i)=>(
+          <div key={i} style={{background:t.ac?'rgba(34,197,94,.08)':'rgba(255,255,255,.03)',
+            borderRadius:12,padding:22,border:`1px solid ${t.ac?'rgba(34,197,94,.25)':'rgba(255,255,255,.08)'}`}}>
+            <div style={{fontSize:13,fontWeight:600,color:t.ac?'#22c55e':'rgba(255,255,255,.6)',marginBottom:6}}>{t.n}</div>
+            <div style={{fontSize:28,fontWeight:800,color:'#fff',marginBottom:2}}>kr {t.p}<span style={{fontSize:14,fontWeight:400,color:'rgba(255,255,255,.4)'}}>/mnd</span></div>
+            <div style={{height:1,background:'rgba(255,255,255,.08)',margin:'14px 0'}}/>
+            {t.f.map((f,j)=><div key={j} style={{fontSize:12,color:'rgba(255,255,255,.55)',marginBottom:5,display:'flex',gap:6}}><span style={{color:'#22c55e'}}>✓</span>{f}</div>)}
+          </div>
+        ))}
+      </div>
+    </div>,
+    /* 5 demo */
+    <div style={{width:'100%',height:'100%',background:'linear-gradient(145deg,#100a1e,#1a0f30)',
+      display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:60,textAlign:'center'}}>
+      <div style={{fontSize:12,fontWeight:700,letterSpacing:'0.1em',color:C.ac,marginBottom:16}}>DEMO & NESTE STEG</div>
+      <div style={{fontSize:36,fontWeight:800,color:'#fff',lineHeight:1.15,marginBottom:16,letterSpacing:'-0.03em'}}>Klar til å prøve?</div>
+      <div style={{fontSize:18,color:'rgba(255,255,255,.45)',marginBottom:36}}>Last ned Lysbilde gratis i dag</div>
+      <div style={{padding:'14px 32px',borderRadius:12,background:C.ac,color:'#fff',
+        fontSize:16,fontWeight:700,cursor:'pointer',boxShadow:`0 8px 32px ${C.acG}`}}>Last ned ↓</div>
+      <div style={{marginTop:24,fontSize:13,color:'rgba(255,255,255,.3)'}}>lysbilde.app · Versjon 1.0</div>
+    </div>,
+  ];
+  return designs[Math.min(index, designs.length-1)] || designs[0];
+}
+
+/* ── HOME SCREEN ── */
+function HomeScreen({onOpen,onNew}) {
+  return (
+    <div style={{flex:1,overflow:'auto',padding:28,animation:'slideUp .22s ease'}}>
+      <div style={{display:'flex',alignItems:'center',marginBottom:22}}>
+        <span style={{fontSize:17,fontWeight:700,color:C.tx}}>Presentasjoner</span>
+        <div style={{flex:1}}/>
+        <Btn primary onClick={onNew}><span style={{fontSize:16,lineHeight:1,marginRight:4}}>+</span> Ny presentasjon</Btn>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+        {PROJECTS.map(p=>(
+          <div key={p.id} onClick={()=>onOpen(p)} style={{
+            background:C.sur,borderRadius:12,overflow:'hidden',
+            border:`1px solid ${C.bd}`,cursor:'pointer',
+            transition:'border-color .15s,transform .15s',
+          }}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor=C.bdM;e.currentTarget.style.transform='translateY(-2px)';}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bd;e.currentTarget.style.transform='translateY(0)';}}>
+            <div style={{height:112,background:'#11111a',display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <Thumb i={p.id-1} w={144} h={90}/>
+            </div>
+            <div style={{padding:'11px 14px 13px'}}>
+              <div style={{fontSize:13,fontWeight:600,color:C.tx,marginBottom:3}}>{p.title}</div>
+              <div style={{fontSize:12,color:C.mu}}>{p.count} slides · {p.date}</div>
+            </div>
+          </div>
+        ))}
+        <div onClick={onNew} style={{
+          background:'transparent',borderRadius:12,border:`2px dashed ${C.bd}`,
+          cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',
+          justifyContent:'center',gap:8,minHeight:164,transition:'border-color .15s',
+        }}
+        onMouseEnter={e=>e.currentTarget.style.borderColor=C.bdM}
+        onMouseLeave={e=>e.currentTarget.style.borderColor=C.bd}>
+          <div style={{width:36,height:36,borderRadius:'50%',background:C.acD,
+            display:'flex',alignItems:'center',justifyContent:'center',
+            fontSize:20,color:C.ac,fontWeight:300}}>+</div>
+          <span style={{fontSize:13,color:C.mu}}>Ny presentasjon</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── ORGANIZER SCREEN ── */
+function OrganizerScreen({project,slides,setSlides,onPresent,onBack,onImport}) {
+  const [sel,setSel]=useState(0);
+  const [dragIdx,setDragIdx]=useState(null);
+  const [overIdx,setOverIdx]=useState(null);
+
+  const handleDragStart=(e,i)=>{e.dataTransfer.effectAllowed='move';setDragIdx(i);};
+  const handleDragOver=(e,i)=>{e.preventDefault();e.dataTransfer.dropEffect='move';setOverIdx(i);};
+  const handleDrop=(e,i)=>{
+    e.preventDefault();
+    if(dragIdx===null||dragIdx===i)return;
+    const arr=[...slides];
+    const [item]=arr.splice(dragIdx,1);
+    arr.splice(i,0,item);
+    setSlides(arr);
+    setSel(i);
+    setDragIdx(null);setOverIdx(null);
+  };
+  const handleDragEnd=()=>{setDragIdx(null);setOverIdx(null);};
+
+  return (
+    <div style={{display:'flex',flex:1,overflow:'hidden',animation:'slideUp .22s ease'}}>
+      {/* Side list */}
+      <div style={{width:198,flexShrink:0,background:C.sb,borderRight:`1px solid ${C.bd}`,display:'flex',flexDirection:'column'}}>
+        <div style={{padding:'12px 10px 8px',flex:1,overflow:'auto'}}>
+          <div style={{fontSize:11,fontWeight:600,color:C.di,marginBottom:8,paddingLeft:6}}>{slides.length} SLIDES</div>
+          {slides.map((s,i)=>(
+            <div key={s.id} draggable onDragStart={e=>handleDragStart(e,i)} onDragOver={e=>handleDragOver(e,i)} onDrop={e=>handleDrop(e,i)} onDragEnd={handleDragEnd}
+              onClick={()=>setSel(i)}
+              style={{display:'flex',alignItems:'center',gap:7,padding:'5px 7px',borderRadius:6,
+                background:sel===i?C.surH:'transparent',cursor:'pointer',marginBottom:2,
+                opacity:dragIdx===i?0.3:1,
+                outline:overIdx===i&&dragIdx!==i?`1.5px solid ${C.ac}`:'none',
+                transition:'background .1s'}}>
+              <span style={{fontSize:10,color:C.di,width:14,flexShrink:0,cursor:'grab'}}>⠿</span>
+              <Thumb i={i} w={42} h={27}/>
+              <span style={{fontSize:11.5,color:sel===i?C.tx:C.mu,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.title}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{padding:12,borderTop:`1px solid ${C.bd}`}}>
+          <Btn primary onClick={onPresent} style={{width:'100%',textAlign:'center'}}>▶ Presenter</Btn>
+        </div>
+      </div>
+      {/* Grid */}
+      <div style={{flex:1,padding:20,overflow:'auto',background:C.bg}}>
+        <div style={{display:'flex',alignItems:'center',marginBottom:16,gap:8}}>
+          <Btn small onClick={onImport}>+ Legg til</Btn>
+          <Btn small onClick={onImport}>↓ Importer</Btn>
+          <div style={{flex:1}}/>
+          <span style={{fontSize:11.5,color:C.di}}>Dra for å endre rekkefølge</span>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+          {slides.map((s,i)=>(
+            <div key={s.id} draggable onDragStart={e=>handleDragStart(e,i)} onDragOver={e=>handleDragOver(e,i)} onDrop={e=>handleDrop(e,i)} onDragEnd={handleDragEnd}
+              onClick={()=>setSel(i)}
+              style={{cursor:'pointer',outline:overIdx===i&&dragIdx!==i?`2px solid ${C.ac}`:'none',
+                borderRadius:10,opacity:dragIdx===i?0.3:1,transition:'opacity .15s'}}>
+              <Thumb i={i} sel={sel===i} drag={dragIdx===i} w={'100%'} h={120}/>
+              <div style={{marginTop:6,fontSize:12,color:sel===i?C.tx:C.mu,textAlign:'center',fontWeight:sel===i?500:400}}>{s.title}</div>
+            </div>
+          ))}
+          <div onClick={onImport} style={{display:'flex',alignItems:'center',justifyContent:'center',
+            height:120,borderRadius:10,border:`2px dashed ${C.bd}`,cursor:'pointer',
+            transition:'border-color .15s'}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor=C.bdM}
+            onMouseLeave={e=>e.currentTarget.style.borderColor=C.bd}>
+            <span style={{fontSize:24,color:C.di}}>+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── IMPORT MODAL ── */
+function ImportModal({onClose,onConfirm}) {
+  const files=['slide-01.html','slide-02.html','slide-03.html'];
+  return (
+    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',
+      display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,
+      animation:'fadeIn .18s ease'}}>
+      <div style={{width:460,background:C.sur,borderRadius:16,border:`1px solid ${C.bdM}`,
+        padding:28,boxShadow:'0 24px 60px rgba(0,0,0,0.7)',animation:'dropIn .22s ease'}}>
+        <div style={{fontSize:16,fontWeight:700,color:C.tx,marginBottom:4}}>Importer HTML-slides</div>
+        <div style={{fontSize:13,color:C.mu,marginBottom:20}}>Velg HTML-filer fra lokal disk eller slipp dem her</div>
+        <div style={{border:`2px dashed ${C.bd}`,borderRadius:12,padding:'22px 20px',
+          textAlign:'center',marginBottom:18,background:'rgba(255,255,255,0.015)'}}>
+          <div style={{fontSize:28,marginBottom:8}}>📄</div>
+          <div style={{fontSize:13,fontWeight:600,color:C.tx,marginBottom:3}}>Slipp HTML-filer her</div>
+          <div style={{fontSize:12,color:C.mu,marginBottom:12}}>eller</div>
+          <Btn small>Velg filer...</Btn>
+        </div>
+        <div style={{marginBottom:18}}>
+          {files.map((f,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:10,
+              padding:'8px 0',borderBottom:`1px solid ${C.bd}`}}>
+              <Thumb i={i} w={38} h={24}/>
+              <span style={{fontSize:12.5,color:C.tx,flex:1}}>{f}</span>
+              <span style={{fontSize:12,color:C.mu}}>24 KB</span>
+              <button onClick={()=>{}} style={{fontSize:16,color:C.di,background:'none',border:'none',cursor:'pointer',marginLeft:4}}>×</button>
+            </div>
+          ))}
+        </div>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+          <Btn onClick={onClose}>Avbryt</Btn>
+          <Btn primary onClick={onConfirm}>Importer 3 slides</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── NEW PROJECT MODAL ── */
+function NewProjectModal({onClose,onCreate}) {
+  const [name,setName]=useState('');
+  return (
+    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',
+      display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,
+      animation:'fadeIn .18s ease'}}>
+      <div style={{width:380,background:C.sur,borderRadius:16,border:`1px solid ${C.bdM}`,
+        padding:28,boxShadow:'0 24px 60px rgba(0,0,0,0.7)',animation:'dropIn .22s ease'}}>
+        <div style={{fontSize:16,fontWeight:700,color:C.tx,marginBottom:18}}>Ny presentasjon</div>
+        <div style={{fontSize:12,color:C.mu,marginBottom:7}}>Navn</div>
+        <input autoFocus value={name} onChange={e=>setName(e.target.value)}
+          onKeyDown={e=>e.key==='Enter'&&name.trim()&&onCreate(name)}
+          placeholder="F.eks. Q3 Strategigjennomgang"
+          style={{width:'100%',padding:'9px 12px',borderRadius:8,
+            border:`1px solid ${name?C.ac:C.bd}`,background:'rgba(255,255,255,0.04)',
+            color:C.tx,fontSize:13,outline:'none',fontFamily:F,marginBottom:20,
+            transition:'border-color .15s'}}/>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+          <Btn onClick={onClose}>Avbryt</Btn>
+          <Btn primary disabled={!name.trim()} onClick={()=>name.trim()&&onCreate(name)}>Opprett</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── PRESENT SCREEN ── */
+function PresentScreen({slides,currentSlide,setCurrentSlide,onExit,fullscreen,setFullscreen}) {
+  const total=slides.length;
+  const prev=()=>setCurrentSlide(i=>Math.max(0,i-1));
+  const next=()=>setCurrentSlide(i=>Math.min(total-1,i+1));
+  useEffect(()=>{
+    const h=(e)=>{
+      if(e.key==='ArrowRight'||e.key===' ')next();
+      else if(e.key==='ArrowLeft')prev();
+      else if(e.key==='Escape'){if(fullscreen)setFullscreen(false);else onExit();}
+    };
+    window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h);
+  },[fullscreen,currentSlide]);
+  return (
+    <div style={{position:'absolute',inset:0,background:'#000',display:'flex',flexDirection:'column',zIndex:fullscreen?100:1,animation:'fadeIn .2s ease'}}>
+      <div style={{flex:1,position:'relative',overflow:'hidden'}}
+        onClick={next}>
+        <SlideView index={currentSlide} title={slides[currentSlide]?.title}/>
+        {/* click zones */}
+        <div onClick={e=>{e.stopPropagation();prev();}} style={{position:'absolute',left:0,top:0,bottom:52,width:'20%',cursor:'w-resize'}}/>
+        <div onClick={e=>{e.stopPropagation();next();}} style={{position:'absolute',right:0,top:0,bottom:52,width:'20%',cursor:'e-resize'}}/>
+        {/* slide number corner */}
+        <div style={{position:'absolute',top:16,right:18,fontSize:12,
+          color:'rgba(255,255,255,0.25)',fontFamily:F,background:'rgba(0,0,0,0.4)',
+          padding:'3px 9px',borderRadius:20}}>{currentSlide+1} / {total}</div>
+      </div>
+      {/* Controlbar */}
+      <div style={{height:52,flexShrink:0,background:'rgba(0,0,0,0.9)',
+        backdropFilter:'blur(20px)',borderTop:'1px solid rgba(255,255,255,0.07)',
+        display:'flex',alignItems:'center',padding:'0 20px',gap:10,fontFamily:F}}>
+        <button onClick={prev} disabled={currentSlide===0} style={{width:32,height:32,borderRadius:7,
+          background:'rgba(255,255,255,0.08)',border:'none',color:currentSlide===0?'rgba(255,255,255,.2)':'rgba(255,255,255,.7)',
+          fontSize:16,cursor:currentSlide===0?'default':'pointer'}}>←</button>
+        <button onClick={next} disabled={currentSlide===total-1} style={{width:32,height:32,borderRadius:7,
+          background:'rgba(255,255,255,0.08)',border:'none',color:currentSlide===total-1?'rgba(255,255,255,.2)':'rgba(255,255,255,.7)',
+          fontSize:16,cursor:currentSlide===total-1?'default':'pointer'}}>→</button>
+        {/* dot nav */}
+        <div style={{display:'flex',gap:6,marginLeft:4}}>
+          {slides.map((_,i)=>(
+            <div key={i} onClick={()=>setCurrentSlide(i)} style={{
+              width:i===currentSlide?18:7,height:7,borderRadius:4,
+              background:i===currentSlide?C.ac:'rgba(255,255,255,.25)',
+              cursor:'pointer',transition:'width .2s,background .2s'}}/>
+          ))}
+        </div>
+        <div style={{flex:1,textAlign:'center',fontSize:12.5,color:'rgba(255,255,255,.35)'}}>
+          {slides[currentSlide]?.title}
+        </div>
+        <div style={{fontSize:11,color:'rgba(255,255,255,.2)',marginRight:4}}>← → mellomrom</div>
+        <button onClick={()=>setFullscreen(f=>!f)} style={{padding:'4px 11px',borderRadius:6,
+          border:'1px solid rgba(255,255,255,.18)',background:'transparent',
+          color:'rgba(255,255,255,.5)',fontSize:12,cursor:'pointer',fontFamily:F}}>
+          {fullscreen?'⊡ Vindu':'⛶ Fullskjerm'}
+        </button>
+        <button onClick={onExit} style={{padding:'4px 11px',borderRadius:6,border:'none',
+          background:'rgba(255,255,255,.1)',color:'rgba(255,255,255,.5)',
+          fontSize:12,cursor:'pointer',fontFamily:F}}>✕ Avslutt</button>
+      </div>
+    </div>
+  );
+}
+
+/* ── TOAST ── */
+function Toast({msg,onDone}) {
+  useEffect(()=>{const t=setTimeout(onDone,2200);return()=>clearTimeout(t);},[]);
+  return (
+    <div style={{position:'absolute',bottom:16,left:'50%',transform:'translateX(-50%)',
+      background:'rgba(30,30,40,0.95)',border:`1px solid ${C.bdM}`,
+      borderRadius:10,padding:'10px 18px',fontSize:13,color:C.tx,
+      boxShadow:'0 8px 32px rgba(0,0,0,0.5)',zIndex:200,whiteSpace:'nowrap',
+      animation:'slideUp .2s ease',backdropFilter:'blur(20px)'}}>
+      {msg}
+    </div>
+  );
+}
+
+/* ── MAIN APP ── */
+function App() {
+  const [screen,setScreen]=useState('home'); // home | organizer | present
+  const [activeProj,setActiveProj]=useState(null);
+  const [slides,setSlides]=useState([]);
+  const [currentSlide,setCurrentSlide]=useState(0);
+  const [fullscreen,setFullscreen]=useState(false);
+  const [importOpen,setImportOpen]=useState(false);
+  const [newProjOpen,setNewProjOpen]=useState(false);
+  const [toast,setToast]=useState(null);
+  const [navSel,setNavSel]=useState('Alle');
+
+  const openProject=(p)=>{setActiveProj(p);setSlides([...p.slides]);setScreen('organizer');};
+  const startPresent=()=>{setCurrentSlide(0);setScreen('present');};
+  const exitPresent=()=>{setFullscreen(false);setScreen('organizer');};
+
+  const handleImportConfirm=()=>{
+    const newSlides=[{id:Date.now(),title:'Ny slide A',file:'ny-a.html'},
+      {id:Date.now()+1,title:'Ny slide B',file:'ny-b.html'},
+      {id:Date.now()+2,title:'Ny slide C',file:'ny-c.html'}];
+    setSlides(s=>[...s,...newSlides]);
+    setImportOpen(false);
+    setToast('3 slides importert');
+  };
+
+  const handleNewProject=(name)=>{
+    const p={id:Date.now(),title:name,count:0,date:'Nå',size:'0 MB',slides:[]};
+    setActiveProj(p);setSlides([]);setNewProjOpen(false);setScreen('organizer');
+  };
+
+  const navItems=[{icon:'⊞',label:'Alle',count:PROJECTS.length},{icon:'★',label:'Stjernemerket'},
+    {icon:'↺',label:'Siste'},{icon:'⌫',label:'Papirkurv'}];
+
+  const isPresent = screen==='present';
+
+  return (
+    <div style={{width:960,height:620,borderRadius:14,overflow:'hidden',
+      background:C.bg,fontFamily:F,position:'relative',
+      boxShadow:'0 0 0 1px rgba(255,255,255,0.07),0 28px 80px rgba(0,0,0,0.9)'}}>
+      {/* Titlebar */}
+      {!isPresent&&(
+        <div style={{height:42,flexShrink:0,background:C.sb,
+          borderBottom:`1px solid ${C.bd}`,display:'flex',alignItems:'center',
+          padding:'0 16px',gap:10,position:'relative',zIndex:10}}>
+          <TL/>
+          {screen==='organizer'&&(
+            <button onClick={()=>setScreen('home')} style={{
+              background:'rgba(255,255,255,0.07)',border:'none',color:C.mu,
+              width:26,height:26,borderRadius:6,cursor:'pointer',fontSize:14,
+              display:'flex',alignItems:'center',justifyContent:'center',marginLeft:4,fontFamily:F}}>‹</button>
+          )}
+          <div style={{flex:1,textAlign:'center',fontSize:13,fontWeight:600,
+            color:C.mu,letterSpacing:'-0.01em'}}>
+            {screen==='organizer'?activeProj?.title:'Lysbilde'}
+          </div>
+          <div style={{width:38}}/>
+        </div>
+      )}
+      {/* Body */}
+      <div style={{display:'flex',height:isPresent?'100%':'calc(100% - 42px)',position:'relative'}}>
+        {/* Sidebar (home only) */}
+        {screen==='home'&&(
+          <div style={{width:190,flexShrink:0,background:C.sb,
+            borderRight:`1px solid ${C.bd}`,padding:'10px 0'}}>
+            {navItems.map((item,i)=>(
+              <div key={i} onClick={()=>setNavSel(item.label)}
+                style={{display:'flex',alignItems:'center',gap:8,height:28,
+                  padding:'0 10px',margin:'1px 8px',borderRadius:7,
+                  background:item.label===navSel?C.surH:'transparent',cursor:'pointer',
+                  fontSize:12.5,fontWeight:item.label===navSel?600:400,
+                  color:item.label===navSel?C.tx:C.mu,transition:'background .1s'}}>
+                <span style={{width:14,textAlign:'center',opacity:.75}}>{item.icon}</span>
+                <span style={{flex:1}}>{item.label}</span>
+                {item.count&&<span style={{fontSize:11,color:C.di}}>{item.count}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Main content */}
+        {screen==='home'&&<HomeScreen onOpen={openProject} onNew={()=>setNewProjOpen(true)}/>}
+        {screen==='organizer'&&(
+          <OrganizerScreen project={activeProj} slides={slides} setSlides={setSlides}
+            onPresent={startPresent} onBack={()=>setScreen('home')} onImport={()=>setImportOpen(true)}/>
+        )}
+        {screen==='present'&&(
+          <PresentScreen slides={slides} currentSlide={currentSlide}
+            setCurrentSlide={setCurrentSlide} onExit={exitPresent}
+            fullscreen={fullscreen} setFullscreen={setFullscreen}/>
+        )}
+        {/* Modals */}
+        {importOpen&&<ImportModal onClose={()=>setImportOpen(false)} onConfirm={handleImportConfirm}/>}
+        {newProjOpen&&<NewProjectModal onClose={()=>setNewProjOpen(false)} onCreate={handleNewProject}/>}
+        {toast&&<Toast msg={toast} onDone={()=>setToast(null)}/>}
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>

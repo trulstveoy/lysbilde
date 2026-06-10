@@ -40,8 +40,18 @@ function resizeNode(node: Konva.Node) {
   const nextHeight = Math.max(24, node.height() * node.scaleY());
   node.width(nextWidth);
   node.height(nextHeight);
+  if (hasChildren(node)) {
+    node.getChildren().forEach((child) => {
+      child.width(nextWidth);
+      child.height(nextHeight);
+    });
+  }
   node.scale({ x: 1, y: 1 });
   return { nextWidth, nextHeight };
+}
+
+function hasChildren(node: Konva.Node): node is Konva.Group {
+  return typeof (node as Konva.Group).getChildren === "function";
 }
 
 function resizeAnnotationFromNode<

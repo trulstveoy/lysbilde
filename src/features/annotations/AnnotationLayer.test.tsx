@@ -12,6 +12,7 @@ import type { SlideAnnotation } from "../../domain/project";
 import AnnotationLayer from "./AnnotationLayer";
 
 const transformNode = vi.hoisted(() => ({
+  getChildren: vi.fn(() => transformChildren),
   height: vi.fn((value?: number) => value ?? 75),
   scale: vi.fn(),
   scaleX: vi.fn(() => 1.5),
@@ -20,6 +21,16 @@ const transformNode = vi.hoisted(() => ({
   x: vi.fn(() => 100),
   y: vi.fn(() => 50),
 }));
+const transformChildren = vi.hoisted(() => [
+  {
+    height: vi.fn(),
+    width: vi.fn(),
+  },
+  {
+    height: vi.fn(),
+    width: vi.fn(),
+  },
+]);
 
 vi.mock("react-konva", () => {
   const Node = ({
@@ -73,6 +84,7 @@ vi.mock("react-konva", () => {
 
 afterEach(() => {
   cleanup();
+  transformNode.getChildren.mockClear();
   transformNode.height.mockClear();
   transformNode.scale.mockClear();
   transformNode.scaleX.mockClear();
@@ -80,6 +92,10 @@ afterEach(() => {
   transformNode.width.mockClear();
   transformNode.x.mockClear();
   transformNode.y.mockClear();
+  transformChildren.forEach((child) => {
+    child.height.mockClear();
+    child.width.mockClear();
+  });
   vi.restoreAllMocks();
 });
 
@@ -235,6 +251,10 @@ describe("AnnotationLayer", () => {
     expect(transformNode.width).toHaveBeenCalledWith(300);
     expect(transformNode.height).toHaveBeenCalledWith(90);
     expect(transformNode.scale).toHaveBeenCalledWith({ x: 1, y: 1 });
+    expect(transformChildren[0].width).toHaveBeenCalledWith(300);
+    expect(transformChildren[0].height).toHaveBeenCalledWith(90);
+    expect(transformChildren[1].width).toHaveBeenCalledWith(300);
+    expect(transformChildren[1].height).toHaveBeenCalledWith(90);
     expect(onChange).not.toHaveBeenCalled();
 
     fireEvent.mouseLeave(screen.getByTestId("annotation-text-1"));

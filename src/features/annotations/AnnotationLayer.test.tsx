@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { SlideAnnotation } from "../../domain/project";
@@ -126,5 +132,39 @@ describe("AnnotationLayer", () => {
       ...annotations[0],
       text: "Updated inline",
     });
+  });
+
+  it("hides the canvas text while inline editing", () => {
+    const annotations: SlideAnnotation[] = [
+      {
+        id: "text-1",
+        type: "text-box",
+        x: 0.1,
+        y: 0.1,
+        width: 0.2,
+        height: 0.15,
+        text: "Only once",
+        color: "#1976d2",
+      },
+    ];
+
+    render(
+      <AnnotationLayer
+        annotations={annotations}
+        mode="annotate"
+        onChange={vi.fn()}
+        onSelect={vi.fn()}
+        selectedId="text-1"
+        size={{ width: 1000, height: 500 }}
+        visible={true}
+      />,
+    );
+
+    fireEvent.doubleClick(screen.getByText("Only once"));
+
+    expect(screen.getByLabelText("Edit annotation text")).toHaveValue("Only once");
+    expect(
+      within(screen.getByTestId("annotation-stage")).queryByText("Only once"),
+    ).not.toBeInTheDocument();
   });
 });

@@ -131,6 +131,7 @@ All annotations must support:
 - Later editing
 
 Sticky notes and text boxes are edited inline with a textarea overlay inside the annotation box. They do not use browser popup prompts.
+The underlying canvas text is hidden while inline editing so the text does not appear doubled.
 
 While text editing is active, keyboard input is captured by the editor. Presenter navigation shortcuts such as Space, arrows, PageUp, and PageDown must not fire from inside editable text fields.
 
@@ -314,6 +315,7 @@ Do not implement these in the first version:
 - [x] Annotation creation and delete actions use icon buttons with accessible labels.
 - [x] Users can select, move, resize where applicable, edit, recolor, and delete annotations.
 - [x] Sticky notes and text boxes can be edited directly in place without a popup.
+- [x] Canvas text is hidden while sticky notes and text boxes are edited inline.
 - [x] Keyboard input inside inline text editors does not advance slides.
 - [x] Arrow endpoints can be dragged independently.
 - [x] Users can switch between view mode and annotation mode.
@@ -347,6 +349,7 @@ Do not implement these in the first version:
 - [x] Add component coverage confirming project setup does not expose annotation controls.
 - [x] Add component coverage confirming windowed presenter exposes annotation controls and fullscreen hides them.
 - [x] Add component coverage confirming sticky note text edits inline without `window.prompt`.
+- [x] Add component coverage confirming canvas text is hidden while inline text editing.
 - [x] Add regression coverage confirming Space inside text fields does not advance slides.
 - [x] Add component coverage confirming annotation tools are icon-only controls with accessible labels.
 - [x] Verify Rust project deserialization compatibility for old project files.
@@ -354,7 +357,7 @@ Do not implement these in the first version:
 
 ## Verification Evidence
 
-- `pnpm test`: 16 test files passed, 43 tests passed.
+- `pnpm test`: 16 test files passed, 44 tests passed.
 - `pnpm build`: TypeScript and Vite production build passed. Vite reports the existing chunk-size warning after adding Konva.
 - `cargo test --manifest-path src-tauri/Cargo.toml`: 3 Rust tests passed.
 

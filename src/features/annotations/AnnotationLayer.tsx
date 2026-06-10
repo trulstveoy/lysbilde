@@ -214,6 +214,7 @@ function AnnotationLayer({
           const y = px(annotation.y, size.height);
           const width = px(annotation.width, size.width);
           const height = px(annotation.height, size.height);
+          const isEditingText = annotation.id === editingId;
 
           const common = {
             draggable: editable,
@@ -273,14 +274,18 @@ function AnnotationLayer({
                   width={width}
                 />
               )}
-              <Text
-                fill={annotation.type === "text-box" ? annotation.color : "#1f2933"}
-                fontSize={18}
-                height={height}
-                padding={10}
-                text={annotation.text}
-                width={width}
-              />
+              {!isEditingText && (
+                <Text
+                  fill={
+                    annotation.type === "text-box" ? annotation.color : "#1f2933"
+                  }
+                  fontSize={18}
+                  height={height}
+                  padding={10}
+                  text={annotation.text}
+                  width={width}
+                />
+              )}
             </Group>
           );
           })}

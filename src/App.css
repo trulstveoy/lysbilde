@@ -12,6 +12,7 @@ body {
 }
 
 .desktop-frame {
+  position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -39,10 +40,14 @@ body {
 }
 
 .traffic-light {
+  appearance: none;
+  display: block;
   width: 12px;
   height: 12px;
+  padding: 0;
   border: 0.5px solid rgba(0, 0, 0, 0.25);
   border-radius: 999px;
+  cursor: default;
 }
 
 .traffic-light--close {
@@ -62,6 +67,75 @@ body {
   font-size: 13px;
   font-weight: 600;
   text-align: center;
+}
+
+.resize-handle {
+  position: fixed;
+  z-index: 1000;
+}
+
+.resize-handle--north,
+.resize-handle--south {
+  left: 10px;
+  width: calc(100vw - 20px);
+  height: 10px;
+  cursor: ns-resize;
+}
+
+.resize-handle--north {
+  top: 0;
+}
+
+.resize-handle--south {
+  bottom: 0;
+}
+
+.resize-handle--east,
+.resize-handle--west {
+  top: 10px;
+  width: 10px;
+  height: calc(100vh - 20px);
+  cursor: ew-resize;
+}
+
+.resize-handle--east {
+  right: 0;
+}
+
+.resize-handle--west {
+  left: 0;
+}
+
+.resize-handle--north-east,
+.resize-handle--north-west,
+.resize-handle--south-east,
+.resize-handle--south-west {
+  width: 14px;
+  height: 14px;
+}
+
+.resize-handle--north-east {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.resize-handle--north-west {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.resize-handle--south-east {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
+
+.resize-handle--south-west {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
 }
 
 .app-layout {

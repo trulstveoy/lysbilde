@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import "./App.css";
+import ResizeHandles from "./components/ResizeHandles";
 import TitleBar from "./components/TitleBar";
 import type { Project, ProjectSummary } from "./domain/project";
 import {
@@ -73,6 +74,7 @@ function App() {
 
   return (
     <div className="desktop-frame">
+      <ResizeHandles />
       {screen !== "presenter" && <TitleBar title={title} />}
       <div className={screen === "presenter" ? "presenter-root" : "app-layout"}>
         {screen === "home" && (

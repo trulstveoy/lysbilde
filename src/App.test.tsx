@@ -1,7 +1,16 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import App from "./App";
+
+vi.mock("@tauri-apps/api/window", () => ({
+  getCurrentWindow: () => ({
+    close: vi.fn(),
+    minimize: vi.fn(),
+    startResizeDragging: vi.fn(),
+    toggleMaximize: vi.fn(),
+  }),
+}));
 
 describe("App shell", () => {
   it("renders the branded Lysbilde shell instead of the scaffold screen", () => {

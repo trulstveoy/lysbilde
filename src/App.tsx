@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import "./App.css";
 import ResizeHandles from "./components/ResizeHandles";
 import TitleBar from "./components/TitleBar";
-import type { Project, ProjectSummary } from "./domain/project";
+import type { Project, ProjectSummary, Slide } from "./domain/project";
 import {
   createProject,
   getProject,
@@ -26,6 +26,7 @@ function App() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const slideSaveVersion = useRef(0);
 
   async function refreshProjects() {
     setProjects(await listProjects());
@@ -55,6 +56,29 @@ function App() {
     const updated = await updateProject(project);
     setActiveProject(updated);
     await refreshProjects();
+  }
+
+  function handleSlideChange(slideIndex: number, slide: Slide) {
+    setActiveProject((currentProject) => {
+      if (!currentProject) {
+        return currentProject;
+      }
+
+      const slides = currentProject.slides.map((candidate, index) =>
+        index === slideIndex ? slide : candidate,
+      );
+      const nextProject = { ...currentProject, slides };
+      const saveVersion = ++slideSaveVersion.current;
+
+      void updateProject(nextProject).then((updatedProject) => {
+        if (saveVersion === slideSaveVersion.current) {
+          setActiveProject(updatedProject);
+        }
+        void refreshProjects();
+      });
+
+      return nextProject;
+    });
   }
 
   async function handleImport(paths: string[]) {
@@ -123,6 +147,7 @@ function App() {
             }}
             onProjectChange={handleProjectChange}
             onSelectSlide={setSelectedIndex}
+            onSlideChange={handleSlideChange}
             project={activeProject}
             selectedIndex={selectedIndex}
           />
@@ -132,6 +157,7 @@ function App() {
             currentIndex={selectedIndex}
             onExit={() => setScreen("project")}
             onIndexChange={setSelectedIndex}
+            onSlideChange={handleSlideChange}
             project={activeProject}
           />
         )}

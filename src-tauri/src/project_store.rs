@@ -22,6 +22,51 @@ pub struct AnnotationLayerRef {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", tag = "type")]
+pub enum SlideAnnotation {
+    #[serde(rename = "sticky-note")]
+    StickyNote {
+        id: String,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+        text: String,
+        color: String,
+    },
+    #[serde(rename = "text-box")]
+    TextBox {
+        id: String,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+        text: String,
+        color: String,
+    },
+    #[serde(rename = "rectangle")]
+    Rectangle {
+        id: String,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+        fill_color: String,
+        color: String,
+    },
+    #[serde(rename = "arrow")]
+    Arrow {
+        id: String,
+        x: f64,
+        y: f64,
+        end_x: f64,
+        end_y: f64,
+        stroke_width: f64,
+        color: String,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Slide {
     pub id: String,
@@ -30,6 +75,8 @@ pub struct Slide {
     pub thumbnail_path: Option<String>,
     #[serde(default)]
     pub missing: bool,
+    #[serde(default)]
+    pub annotations: Vec<SlideAnnotation>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,6 +88,7 @@ pub struct Project {
     pub updated_at: String,
     pub slides: Vec<Slide>,
     pub display_settings: DisplaySettings,
+    #[serde(default)]
     pub annotations: Vec<AnnotationLayerRef>,
 }
 
@@ -198,8 +246,38 @@ pub fn import_html_slides(
             file_path,
             thumbnail_path: None,
             missing: !path.exists(),
+            annotations: Vec::new(),
         });
     }
 
     update_project(app, project)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deserializes_project_without_slide_annotations() {
+        let json = r#"{
+          "id": "p1",
+          "title": "Deck",
+          "createdAt": "1",
+          "updatedAt": "1",
+          "slides": [
+            {
+              "id": "s1",
+              "title": "Slide",
+              "filePath": "/tmp/slide.html",
+              "thumbnailPath": null
+            }
+          ],
+          "displaySettings": { "mode": "embedded" }
+        }"#;
+
+        let project: Project = serde_json::from_str(json).expect("project parses");
+
+        assert_eq!(project.slides[0].annotations.len(), 0);
+        assert_eq!(project.annotations.len(), 0);
+    }
 }

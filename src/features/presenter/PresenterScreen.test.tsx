@@ -29,6 +29,7 @@ const project: Project = {
       title: "Opening",
       filePath: "/slides/opening.html",
       thumbnailPath: null,
+      annotations: [],
     },
   ],
 };
@@ -48,6 +49,7 @@ describe("PresenterScreen fullscreen", () => {
         currentIndex={0}
         onExit={vi.fn()}
         onIndexChange={vi.fn()}
+        onSlideChange={vi.fn()}
         project={project}
       />,
     );
@@ -73,6 +75,7 @@ describe("PresenterScreen fullscreen", () => {
         currentIndex={0}
         onExit={onExit}
         onIndexChange={vi.fn()}
+        onSlideChange={vi.fn()}
         project={project}
       />,
     );

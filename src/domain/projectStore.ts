@@ -124,6 +124,7 @@ export async function importHtmlSlides(
         filePath,
         thumbnailPath: null,
         missing: false,
+        annotations: [],
       })),
     ],
   });

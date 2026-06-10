@@ -1,19 +1,33 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import Button from "../../components/Button";
-import type { Project } from "../../domain/project";
+import SlideViewport from "../../components/SlideViewport";
+import {
+  createAnnotation,
+  deleteSlideAnnotation,
+  recolorSlideAnnotation,
+  updateSlideAnnotation,
+  type AnnotationKind,
+} from "../../domain/annotations";
+import type { AnnotationColor, Project, Slide } from "../../domain/project";
 import {
   nextSlideIndex,
   previousSlideIndex,
   selectSlideIndex,
 } from "../../domain/presenter";
+import AnnotationLayer from "../annotations/AnnotationLayer";
+import AnnotationToolbar, {
+  type AnnotationMode,
+} from "../annotations/AnnotationToolbar";
+import { useElementSize } from "../annotations/useElementSize";
 
 type PresenterScreenProps = {
   currentIndex: number;
   onExit: () => void;
   onIndexChange: (index: number) => void;
+  onSlideChange: (slideIndex: number, slide: Slide) => void;
   project: Project;
 };
 
@@ -29,9 +43,19 @@ function PresenterScreen({
   currentIndex,
   onExit,
   onIndexChange,
+  onSlideChange,
   project,
 }: PresenterScreenProps) {
   const [fullscreen, setFullscreen] = useState(false);
+  const [annotationMode, setAnnotationMode] = useState<AnnotationMode>("view");
+  const [annotationsVisible, setAnnotationsVisible] = useState(true);
+  const [annotationColor, setAnnotationColor] =
+    useState<AnnotationColor>("#fff59d");
+  const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(
+    null,
+  );
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const viewportSize = useElementSize(viewportRef);
   const slide = project.slides[currentIndex];
   const total = project.slides.length;
   const src = useMemo(
@@ -45,6 +69,54 @@ function PresenterScreen({
 
   function next() {
     onIndexChange(nextSlideIndex(currentIndex, total));
+  }
+
+  useEffect(() => {
+    setSelectedAnnotationId(null);
+  }, [slide?.id]);
+
+  function handleAnnotationChange(annotation: Slide["annotations"][number]) {
+    if (!slide) {
+      return;
+    }
+    onSlideChange(currentIndex, updateSlideAnnotation(slide, annotation));
+  }
+
+  function handleAddAnnotation(type: AnnotationKind) {
+    if (!slide) {
+      return;
+    }
+    const annotation = createAnnotation(type, {
+      id: annotationId(),
+      x: 0.15,
+      y: 0.15,
+      color: annotationColor,
+    });
+    onSlideChange(currentIndex, {
+      ...slide,
+      annotations: [...slide.annotations, annotation],
+    });
+    setSelectedAnnotationId(annotation.id);
+    setAnnotationMode("annotate");
+    setAnnotationsVisible(true);
+  }
+
+  function handleDeleteSelectedAnnotation() {
+    if (!slide || !selectedAnnotationId) {
+      return;
+    }
+    onSlideChange(currentIndex, deleteSlideAnnotation(slide, selectedAnnotationId));
+    setSelectedAnnotationId(null);
+  }
+
+  function handleAnnotationColorChange(color: AnnotationColor) {
+    setAnnotationColor(color);
+    if (slide && selectedAnnotationId) {
+      onSlideChange(
+        currentIndex,
+        recolorSlideAnnotation(slide, selectedAnnotationId, color),
+      );
+    }
   }
 
   async function toggleFullscreen() {
@@ -101,7 +173,14 @@ function PresenterScreen({
         .join(" ")}
       data-testid="presenter-screen"
     >
-      <div className="presenter-stage" onClick={next}>
+      <div
+        className="presenter-stage"
+        onClick={() => {
+          if (annotationMode === "view") {
+            next();
+          }
+        }}
+      >
         <button
           aria-label="Previous slide"
           className="presenter-click-zone presenter-click-zone--left"
@@ -111,18 +190,26 @@ function PresenterScreen({
           }}
           type="button"
         />
-        {slide?.missing ? (
-          <div className="missing-slide">
-            <h2>Slide file missing</h2>
-            <p>{slide.filePath}</p>
-          </div>
-        ) : src ? (
-          <iframe className="slide-frame" src={src} title={slide.title} />
-        ) : (
-          <div className="missing-slide">
-            <h2>No slide selected</h2>
-          </div>
-        )}
+        <SlideViewport
+          missing={slide?.missing}
+          missingPath={slide?.filePath}
+          overlay={
+            slide ? (
+              <AnnotationLayer
+                annotations={slide.annotations}
+                mode={fullscreen ? "view" : annotationMode}
+                onChange={handleAnnotationChange}
+                onSelect={setSelectedAnnotationId}
+                selectedId={selectedAnnotationId}
+                size={viewportSize}
+                visible={annotationsVisible}
+              />
+            ) : null
+          }
+          ref={viewportRef}
+          slideTitle={slide?.title ?? "No slide selected"}
+          src={src}
+        />
         <button
           aria-label="Next slide"
           className="presenter-click-zone presenter-click-zone--right"
@@ -137,39 +224,56 @@ function PresenterScreen({
         </div>
       </div>
       {!fullscreen && (
-        <footer className="presenter-controls">
-          <Button disabled={currentIndex === 0} onClick={previous} size="small">
-            ←
-          </Button>
-          <Button
-            disabled={currentIndex >= total - 1}
-            onClick={next}
-            size="small"
-          >
-            →
-          </Button>
-          <div className="dot-nav">
-            {project.slides.map((item, index) => (
-              <button
-                aria-label={`Go to slide ${index + 1}`}
-                className={index === currentIndex ? "dot dot--active" : "dot"}
-                key={item.id}
-                onClick={() => onIndexChange(selectSlideIndex(index, total))}
-                type="button"
-              />
-            ))}
-          </div>
-          <span className="presenter-title">{slide?.title ?? project.title}</span>
-          <Button onClick={toggleFullscreen} size="small">
-            Fullscreen
-          </Button>
-          <Button onClick={() => void exitPresenter()} size="small">
-            Exit
-          </Button>
-        </footer>
+        <>
+          <AnnotationToolbar
+            color={annotationColor}
+            mode={annotationMode}
+            onAdd={handleAddAnnotation}
+            onColorChange={handleAnnotationColorChange}
+            onDeleteSelected={handleDeleteSelectedAnnotation}
+            onModeChange={setAnnotationMode}
+            onVisibilityChange={setAnnotationsVisible}
+            selectedId={selectedAnnotationId}
+            visible={annotationsVisible}
+          />
+          <footer className="presenter-controls">
+            <Button disabled={currentIndex === 0} onClick={previous} size="small">
+              ←
+            </Button>
+            <Button
+              disabled={currentIndex >= total - 1}
+              onClick={next}
+              size="small"
+            >
+              →
+            </Button>
+            <div className="dot-nav">
+              {project.slides.map((item, index) => (
+                <button
+                  aria-label={`Go to slide ${index + 1}`}
+                  className={index === currentIndex ? "dot dot--active" : "dot"}
+                  key={item.id}
+                  onClick={() => onIndexChange(selectSlideIndex(index, total))}
+                  type="button"
+                />
+              ))}
+            </div>
+            <span className="presenter-title">{slide?.title ?? project.title}</span>
+            <Button onClick={toggleFullscreen} size="small">
+              Fullscreen
+            </Button>
+            <Button onClick={() => void exitPresenter()} size="small">
+              Exit
+            </Button>
+          </footer>
+        </>
       )}
     </div>
   );
 }
 
 export default PresenterScreen;
+
+function annotationId() {
+  return globalThis.crypto?.randomUUID?.() ?? `annotation-${Date.now()}`;
+}

@@ -1,0 +1,252 @@
+import { useEffect, useRef } from "react";
+import Konva from "konva";
+import {
+  Arrow,
+  Circle,
+  Group,
+  Layer,
+  Rect,
+  Stage,
+  Text,
+  Transformer,
+} from "react-konva";
+
+import type { SlideAnnotation } from "../../domain/project";
+import type { AnnotationMode } from "./AnnotationToolbar";
+
+type AnnotationLayerProps = {
+  annotations: SlideAnnotation[];
+  mode: AnnotationMode;
+  onChange: (annotation: SlideAnnotation) => void;
+  onSelect: (id: string | null) => void;
+  selectedId: string | null;
+  size: { width: number; height: number };
+  visible: boolean;
+};
+
+function px(value: number, total: number) {
+  return value * total;
+}
+
+function rel(value: number, total: number) {
+  if (total <= 0) {
+    return 0;
+  }
+  return Math.max(0, Math.min(1, Number((value / total).toFixed(4))));
+}
+
+function AnnotationLayer({
+  annotations,
+  mode,
+  onChange,
+  onSelect,
+  selectedId,
+  size,
+  visible,
+}: AnnotationLayerProps) {
+  const transformerRef = useRef<Konva.Transformer | null>(null);
+  const nodeRefs = useRef<Record<string, Konva.Node | null>>({});
+
+  const selectedAnnotation = annotations.find(
+    (annotation) => annotation.id === selectedId,
+  );
+  const editable = mode === "annotate";
+
+  useEffect(() => {
+    const transformer = transformerRef.current;
+    if (!transformer || !selectedAnnotation || selectedAnnotation.type === "arrow") {
+      transformer?.nodes([]);
+      return;
+    }
+
+    const node = nodeRefs.current[selectedAnnotation.id];
+    transformer.nodes(node ? [node] : []);
+    transformer.getLayer()?.batchDraw();
+  }, [selectedAnnotation]);
+
+  if (!visible || size.width <= 0 || size.height <= 0) {
+    return null;
+  }
+
+  return (
+    <Stage
+      className={[
+        "annotation-stage",
+        editable ? "annotation-stage--editable" : "annotation-stage--view",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      data-testid="annotation-stage"
+      height={size.height}
+      onMouseDown={(event) => {
+        if (event.target === event.target.getStage()) {
+          onSelect(null);
+        }
+      }}
+      width={size.width}
+    >
+      <Layer>
+        {annotations.map((annotation) => {
+          if (annotation.type === "arrow") {
+            const startX = px(annotation.x, size.width);
+            const startY = px(annotation.y, size.height);
+            const endX = px(annotation.endX, size.width);
+            const endY = px(annotation.endY, size.height);
+
+            return (
+              <Group
+                draggable={editable}
+                key={annotation.id}
+                onClick={() => onSelect(annotation.id)}
+                onDragEnd={(event) => {
+                  const dx = rel(event.target.x(), size.width);
+                  const dy = rel(event.target.y(), size.height);
+                  event.target.position({ x: 0, y: 0 });
+                  onChange({
+                    ...annotation,
+                    x: Math.max(0, Math.min(1, annotation.x + dx)),
+                    y: Math.max(0, Math.min(1, annotation.y + dy)),
+                    endX: Math.max(0, Math.min(1, annotation.endX + dx)),
+                    endY: Math.max(0, Math.min(1, annotation.endY + dy)),
+                  });
+                }}
+              >
+                <Arrow
+                  fill={annotation.color}
+                  points={[startX, startY, endX, endY]}
+                  pointerLength={12}
+                  pointerWidth={12}
+                  stroke={annotation.color}
+                  strokeWidth={annotation.strokeWidth}
+                />
+                {editable && selectedId === annotation.id && (
+                  <>
+                    <Circle
+                      draggable
+                      fill="#ffffff"
+                      onDragEnd={(event) =>
+                        onChange({
+                          ...annotation,
+                          x: rel(event.target.x(), size.width),
+                          y: rel(event.target.y(), size.height),
+                        })
+                      }
+                      radius={7}
+                      stroke={annotation.color}
+                      strokeWidth={2}
+                      x={startX}
+                      y={startY}
+                    />
+                    <Circle
+                      draggable
+                      fill="#ffffff"
+                      onDragEnd={(event) =>
+                        onChange({
+                          ...annotation,
+                          endX: rel(event.target.x(), size.width),
+                          endY: rel(event.target.y(), size.height),
+                        })
+                      }
+                      radius={7}
+                      stroke={annotation.color}
+                      strokeWidth={2}
+                      x={endX}
+                      y={endY}
+                    />
+                  </>
+                )}
+              </Group>
+            );
+          }
+
+          const x = px(annotation.x, size.width);
+          const y = px(annotation.y, size.height);
+          const width = px(annotation.width, size.width);
+          const height = px(annotation.height, size.height);
+
+          const common = {
+            draggable: editable,
+            onClick: () => onSelect(annotation.id),
+            onDblClick: () => {
+              if (
+                !editable ||
+                (annotation.type !== "sticky-note" &&
+                  annotation.type !== "text-box")
+              ) {
+                return;
+              }
+              const text = window.prompt("Annotation text", annotation.text);
+              if (text !== null) {
+                onChange({ ...annotation, text });
+              }
+            },
+            onDragEnd: (event: Konva.KonvaEventObject<DragEvent>) =>
+              onChange({
+                ...annotation,
+                x: rel(event.target.x(), size.width),
+                y: rel(event.target.y(), size.height),
+              }),
+            onTransformEnd: (event: Konva.KonvaEventObject<Event>) => {
+              const node = event.target;
+              const nextWidth = Math.max(24, node.width() * node.scaleX());
+              const nextHeight = Math.max(24, node.height() * node.scaleY());
+              node.scale({ x: 1, y: 1 });
+              onChange({
+                ...annotation,
+                x: rel(node.x(), size.width),
+                y: rel(node.y(), size.height),
+                width: rel(nextWidth, size.width),
+                height: rel(nextHeight, size.height),
+              });
+            },
+            ref: (node: Konva.Node | null) => {
+              nodeRefs.current[annotation.id] = node;
+            },
+            x,
+            y,
+          };
+
+          if (annotation.type === "rectangle") {
+            return (
+              <Rect
+                {...common}
+                fill={annotation.fillColor}
+                height={height}
+                key={annotation.id}
+                stroke={annotation.color}
+                strokeWidth={3}
+                width={width}
+              />
+            );
+          }
+
+          return (
+            <Group {...common} height={height} key={annotation.id} width={width}>
+              {annotation.type === "sticky-note" && (
+                <Rect
+                  fill={annotation.color}
+                  height={height}
+                  shadowBlur={8}
+                  width={width}
+                />
+              )}
+              <Text
+                fill={annotation.type === "text-box" ? annotation.color : "#1f2933"}
+                fontSize={18}
+                height={height}
+                padding={10}
+                text={annotation.text}
+                width={width}
+              />
+            </Group>
+          );
+        })}
+        {editable && selectedAnnotation?.type !== "arrow" && (
+          <Transformer ref={transformerRef} rotateEnabled={false} />
+        )}
+      </Layer>
+    </Stage>
+  );
+}
+
+export default AnnotationLayer;

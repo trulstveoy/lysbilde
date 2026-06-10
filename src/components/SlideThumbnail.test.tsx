@@ -18,6 +18,7 @@ describe("SlideThumbnail", () => {
           filePath: "/tmp/agenda.html",
           thumbnailPath: null,
           missing: false,
+          annotations: [],
         }}
       />,
     );

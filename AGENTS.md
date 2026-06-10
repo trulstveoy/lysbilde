@@ -26,3 +26,10 @@
   - `docs/decisions/` for architecture or product decisions.
   - `docs/artifacts/` for generated outputs, diagrams, reports, exports, and other deliverables.
 - Do not place task documentation or generated artifacts in the repository root unless the user explicitly asks for a root-level file.
+
+## Completion Handoff
+
+- When finishing a task, always end the final response with a concrete next activity so the user does not need to ask what should happen next.
+- The next activity should be actionable and specific, for example a command the user can give, the next plan task to execute, a review step, a commit/push step, or a verification step.
+- If there are multiple reasonable next activities, recommend one and briefly mention the alternative only if it affects the workflow.
+- Keep the next activity short and separate from the work summary.

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Product</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
+          Arial, sans-serif;
+        background: #0f0a1e;
+        color: white;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 70% 20%, rgba(168, 85, 247, 0.18), transparent 34%),
+          #0f0a1e;
+      }
+
+      main {
+        width: min(1080px, calc(100vw - 96px));
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: #a855f7;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 42px;
+        font-size: clamp(38px, 5vw, 70px);
+        letter-spacing: -0.035em;
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+
+      article {
+        min-height: 220px;
+        padding: 28px;
+        border: 1px solid rgba(168, 85, 247, 0.18);
+        border-radius: 18px;
+        background: rgba(168, 85, 247, 0.06);
+      }
+
+      .symbol {
+        margin-bottom: 20px;
+        color: #a855f7;
+        font-size: 30px;
+        font-weight: 800;
+      }
+
+      h2 {
+        margin: 0 0 10px;
+        font-size: 24px;
+      }
+
+      p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.56);
+        font-size: 17px;
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">The product</p>
+      <h1>Introducing Lysbilde</h1>
+      <div class="features">
+        <article>
+          <div class="symbol">01</div>
+          <h2>Fast</h2>
+          <p>Open and present HTML files without conversion.</p>
+        </article>
+        <article>
+          <div class="symbol">02</div>
+          <h2>Organized</h2>
+          <p>Arrange slides with a clear thumbnail workspace.</p>
+        </article>
+        <article>
+          <div class="symbol">03</div>
+          <h2>Keyboard first</h2>
+          <p>Navigate presentations with keys, clicks, or controls.</p>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

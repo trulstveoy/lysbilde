@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pricing</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
+          Arial, sans-serif;
+        background: #0c1208;
+        color: white;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.18), transparent 36%),
+          #0c1208;
+      }
+
+      main {
+        width: min(1040px, calc(100vw - 96px));
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: #22c55e;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 42px;
+        font-size: clamp(38px, 5vw, 70px);
+        letter-spacing: -0.035em;
+      }
+
+      .plans {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+
+      article {
+        padding: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      article.featured {
+        border-color: rgba(34, 197, 94, 0.34);
+        background: rgba(34, 197, 94, 0.08);
+      }
+
+      h2 {
+        margin: 0 0 10px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 17px;
+      }
+
+      .price {
+        margin: 0 0 24px;
+        font-size: 42px;
+        font-weight: 850;
+        letter-spacing: -0.04em;
+      }
+
+      ul {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        color: rgba(255, 255, 255, 0.58);
+        list-style: none;
+      }
+
+      li::before {
+        content: "✓";
+        margin-right: 8px;
+        color: #22c55e;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Pricing</p>
+      <h1>Simple pricing. Full access.</h1>
+      <div class="plans">
+        <article>
+          <h2>Free</h2>
+          <p class="price">$0</p>
+          <ul>
+            <li>5 presentations</li>
+            <li>Local storage</li>
+            <li>Basic navigation</li>
+          </ul>
+        </article>
+        <article class="featured">
+          <h2>Pro</h2>
+          <p class="price">$9</p>
+          <ul>
+            <li>Unlimited decks</li>
+            <li>Annotations</li>
+            <li>Export support</li>
+          </ul>
+        </article>
+        <article>
+          <h2>Team</h2>
+          <p class="price">$29</p>
+          <ul>
+            <li>Shared libraries</li>
+            <li>Collaboration</li>
+            <li>Admin controls</li>
+          </ul>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

@@ -842,12 +842,12 @@ body {
 
 .presenter-root {
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 42px);
 }
 
 .presenter-screen {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: #000;

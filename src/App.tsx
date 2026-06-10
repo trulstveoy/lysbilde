@@ -75,7 +75,7 @@ function App() {
   return (
     <div className="desktop-frame">
       <ResizeHandles />
-      {screen !== "presenter" && <TitleBar title={title} />}
+      <TitleBar title={title} />
       <div className={screen === "presenter" ? "presenter-root" : "app-layout"}>
         {screen === "home" && (
           <>

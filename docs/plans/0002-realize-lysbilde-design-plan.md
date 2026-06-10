@@ -1,6 +1,6 @@
 # Realize Lysbilde Design Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Evolve the current minimal Tauri baseline into the phase 1 Lysbilde app described by the design package: an HTML-slide presentation organizer and presenter.
 
@@ -118,23 +118,23 @@ git commit -m "Build Lysbilde app shell"
 - Create: `src/domain/presenter.test.ts`
 - Modify: `package.json` if test tooling is not present.
 
-- [ ] **Step 1: Add frontend test tooling**
+- [x] **Step 1: Add frontend test tooling**
 
 Use the smallest fitting test setup for the React/Vite stack, such as Vitest with jsdom for component tests and plain Vitest for domain tests.
 
-- [ ] **Step 2: Define domain types**
+- [x] **Step 2: Define domain types**
 
 Create TypeScript types for `Project`, `Slide`, `ProjectMetadata`, `DisplaySettings`, and `AnnotationLayerRef`. Keep annotations as an empty future-ready collection in phase 1.
 
-- [ ] **Step 3: Write presenter navigation tests**
+- [x] **Step 3: Write presenter navigation tests**
 
 Cover next, previous, clamping at first/last slide, direct slide selection, and empty slide decks.
 
-- [ ] **Step 4: Implement navigation helpers**
+- [x] **Step 4: Implement navigation helpers**
 
 Create pure functions such as `nextSlideIndex`, `previousSlideIndex`, and `selectSlideIndex`.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -145,7 +145,7 @@ pnpm test
 
 Expected: TypeScript passes and domain tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json pnpm-lock.yaml src/domain
@@ -162,11 +162,11 @@ git commit -m "Add Lysbilde domain model"
 - Create: `src/domain/projectStore.ts`
 - Modify: `src-tauri/capabilities/default.json`
 
-- [ ] **Step 1: Add Rust persistence dependencies**
+- [x] **Step 1: Add Rust persistence dependencies**
 
 Add `serde`, `serde_json`, and any minimal path/error helpers required by the Rust implementation.
 
-- [ ] **Step 2: Define project storage shape**
+- [x] **Step 2: Define project storage shape**
 
 Use an app-data directory with this logical structure:
 
@@ -179,7 +179,7 @@ projects/
 
 `project.json` stores title, created/updated timestamps, slide order, source file paths, display settings, and annotation references.
 
-- [ ] **Step 3: Implement Rust commands**
+- [x] **Step 3: Implement Rust commands**
 
 Add commands for:
 
@@ -191,11 +191,11 @@ Add commands for:
 
 Use typed Rust structs and return structured errors as strings or a serializable error shape.
 
-- [ ] **Step 4: Implement frontend store wrapper**
+- [x] **Step 4: Implement frontend store wrapper**
 
 Expose the commands through `src/domain/projectStore.ts` so React components do not call `invoke` directly.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -206,7 +206,7 @@ pnpm build
 
 Expected: Rust tests pass and the frontend build passes.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src-tauri src/domain/projectStore.ts
@@ -222,19 +222,19 @@ git commit -m "Add local project persistence"
 - Modify: `src/App.tsx`
 - Modify: `src/App.css`
 
-- [ ] **Step 1: Build the home layout**
+- [x] **Step 1: Build the home layout**
 
 Implement the titlebar, sidebar, project grid, and new-project card from the handoff. Use placeholder thumbnails until cached thumbnails exist.
 
-- [ ] **Step 2: Build project creation**
+- [x] **Step 2: Build project creation**
 
 Add the new-project modal with live input state, disabled submit for empty names, Enter-to-create, Cancel, and Create actions.
 
-- [ ] **Step 3: Connect to persistence**
+- [x] **Step 3: Connect to persistence**
 
 Load projects on app startup and call `create_project` when a project is created.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -245,7 +245,7 @@ pnpm tauri dev
 
 Expected: a user can create a project, return to the home screen, and see the project card.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src
@@ -264,23 +264,23 @@ git commit -m "Implement project home screen"
 - Modify: `src/domain/projectStore.ts`
 - Modify: `src/features/project/ProjectScreen.tsx`
 
-- [ ] **Step 1: Add Tauri dialog support**
+- [x] **Step 1: Add Tauri dialog support**
 
 Install and register the Tauri dialog plugin. The Tauri 2 dialog `open()` API returns selected paths and temporarily scopes selected paths for filesystem/asset access, so persist only the file references needed by the project.
 
-- [ ] **Step 2: Add HTML metadata extraction**
+- [x] **Step 2: Add HTML metadata extraction**
 
 Extract slide titles from each file's `<title>` tag. If no title exists, derive a display title from the filename.
 
-- [ ] **Step 3: Build import modal**
+- [x] **Step 3: Build import modal**
 
 Implement the drop-zone visual treatment, file list, remove action, Cancel, and Import buttons. Use the system file picker for initial implementation; native drag-and-drop from the OS can be a hardening task if it is not needed for the first slice.
 
-- [ ] **Step 4: Persist imported slides**
+- [x] **Step 4: Persist imported slides**
 
 Add imported slides to the selected project without copying or modifying the source HTML files.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -291,7 +291,7 @@ pnpm tauri dev
 
 Expected: a user can select multiple `.html` files, import them into a project, close/reopen the app, and still see the imported slide list.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json pnpm-lock.yaml src src-tauri
@@ -306,19 +306,19 @@ git commit -m "Add HTML slide import"
 - Modify: `src/App.tsx`
 - Modify: `src-tauri/capabilities/default.json`
 
-- [ ] **Step 1: Render local HTML slides**
+- [x] **Step 1: Render local HTML slides**
 
 Render the current slide in an isolated viewing surface. Prefer the safest Tauri-supported path for local HTML display. If direct `file://` rendering requires broader CSP or asset scope, use a dedicated Tauri command or asset protocol decision and document the chosen security boundary.
 
-- [ ] **Step 2: Add controls**
+- [x] **Step 2: Add controls**
 
 Implement previous/next buttons, dot navigation, slide title, slide count overlay, click zones, and Exit.
 
-- [ ] **Step 3: Add keyboard navigation**
+- [x] **Step 3: Add keyboard navigation**
 
 Support ArrowRight, Space, PageDown, ArrowLeft, PageUp, and Escape as described in the specification.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -329,7 +329,7 @@ pnpm tauri dev
 
 Expected: a user can present an imported deck inside the app window and navigate through every slide without leaving bounds.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src src-tauri
@@ -343,15 +343,15 @@ git commit -m "Implement embedded presenter"
 - Modify: `src/domain/presenter.ts`
 - Modify: `src-tauri/capabilities/default.json`
 
-- [ ] **Step 1: Add fullscreen toggle**
+- [x] **Step 1: Add fullscreen toggle**
 
 Use Tauri's current window API to toggle fullscreen from the presenter. Escape should leave fullscreen first; if already windowed, Escape should exit presentation mode.
 
-- [ ] **Step 2: Preserve presentation state**
+- [x] **Step 2: Preserve presentation state**
 
 The current slide index should remain stable when toggling fullscreen.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
@@ -362,7 +362,7 @@ pnpm tauri dev
 
 Expected: fullscreen toggle works, Escape behavior matches the design, and navigation remains stable.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src src-tauri/capabilities/default.json
@@ -379,23 +379,23 @@ git commit -m "Add fullscreen presenter mode"
 - Modify: `src/domain/projectStore.ts`
 - Modify: `src/App.tsx`
 
-- [ ] **Step 1: Build organizer layout**
+- [x] **Step 1: Build organizer layout**
 
 Implement the side slide list, main thumbnail grid, import/add controls, and sticky Presenter button.
 
-- [ ] **Step 2: Add selection state**
+- [x] **Step 2: Add selection state**
 
 Selecting a slide in either the side list or grid should update the selected slide consistently.
 
-- [ ] **Step 3: Add drag-and-drop reorder**
+- [x] **Step 3: Add drag-and-drop reorder**
 
 Use HTML5 drag-and-drop first, matching the prototype's `dragIdx` and `overIdx` behavior. Reorder should work in both the side list and grid.
 
-- [ ] **Step 4: Persist order**
+- [x] **Step 4: Persist order**
 
 After reorder, update `project.json` so reopening the app preserves the new order.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -406,7 +406,7 @@ pnpm tauri dev
 
 Expected: imported slides can be reordered from both organizer views, and the order persists after restart.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src
@@ -422,19 +422,19 @@ git commit -m "Implement slide organizer"
 - Modify: `src/domain/project.ts`
 - Modify: `src/domain/projectStore.ts`
 
-- [ ] **Step 1: Keep placeholder thumbnails as fallback**
+- [x] **Step 1: Keep placeholder thumbnails as fallback**
 
 Do not block the MVP on perfect thumbnail capture. The placeholder thumbnail design remains valid when no cached image exists.
 
-- [ ] **Step 2: Add thumbnail metadata**
+- [x] **Step 2: Add thumbnail metadata**
 
 Store optional thumbnail paths per slide in project metadata.
 
-- [ ] **Step 3: Implement first thumbnail cache path**
+- [x] **Step 3: Implement first thumbnail cache path**
 
 Start with deterministic placeholder image generation or a documented manual cache slot if reliable Tauri webview capture is not available. Then replace with real capture once the Tauri rendering path is proven.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -445,7 +445,7 @@ pnpm build
 
 Expected: the app shows cached thumbnails when present and falls back to placeholders when missing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src src-tauri
@@ -460,19 +460,19 @@ git commit -m "Add thumbnail cache support"
 - Modify: `src/features/project/ProjectScreen.tsx`
 - Modify: `src/features/presenter/PresenterScreen.tsx`
 
-- [ ] **Step 1: Detect missing source files**
+- [x] **Step 1: Detect missing source files**
 
 On project load and presentation start, check whether each source file still exists.
 
-- [ ] **Step 2: Show missing-file state**
+- [x] **Step 2: Show missing-file state**
 
 Display a clear warning in the organizer and block presentation of missing slides with a readable error surface.
 
-- [ ] **Step 3: Preserve project data**
+- [x] **Step 3: Preserve project data**
 
 Missing files should not remove slides automatically. Keep the stored references so users can repair paths in a later flow.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -483,7 +483,7 @@ pnpm tauri dev
 
 Expected: deleting or moving an imported source file creates a visible warning without corrupting the project.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src src-tauri
@@ -497,15 +497,15 @@ git commit -m "Handle missing slide files"
 - Modify: `src-tauri/src/project_store.rs`
 - Create: `docs/decisions/0001-annotation-layer-boundary.md`
 
-- [ ] **Step 1: Keep annotations out of phase 1 UI**
+- [x] **Step 1: Keep annotations out of phase 1 UI**
 
 Do not build annotation tools during the MVP. Only preserve a stable data boundary so future annotation work does not require changing the project format.
 
-- [ ] **Step 2: Document the boundary**
+- [x] **Step 2: Document the boundary**
 
 Record that annotations are stored as separate project-owned layers linked to slides and never written into source HTML files.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
@@ -516,7 +516,7 @@ pnpm build
 
 Expected: project serialization supports empty annotation references and existing projects remain readable.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src src-tauri docs/decisions/0001-annotation-layer-boundary.md

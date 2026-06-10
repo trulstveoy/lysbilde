@@ -885,14 +885,45 @@ body {
   background: #fff;
 }
 
-.annotation-stage {
+.annotation-layer {
   position: absolute;
   inset: 0;
   z-index: 4;
 }
 
+.annotation-stage {
+  position: absolute;
+  inset: 0;
+}
+
 .annotation-stage--view {
   pointer-events: none;
+}
+
+.annotation-text-editor {
+  position: absolute;
+  z-index: 5;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 10px;
+  overflow: auto;
+  border: 2px solid #ffffff;
+  border-radius: 4px;
+  outline: 2px solid var(--color-accent);
+  background: transparent;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1.25;
+  resize: none;
+}
+
+.annotation-text-editor--sticky-note {
+  background: #fff59d;
+}
+
+.annotation-text-editor--text-box {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .annotation-toolbar {

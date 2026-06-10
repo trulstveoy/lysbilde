@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Konva from "konva";
 import {
   Arrow,
@@ -35,6 +35,11 @@ function rel(value: number, total: number) {
   return Math.max(0, Math.min(1, Number((value / total).toFixed(4))));
 }
 
+type EditableTextAnnotation = Extract<
+  SlideAnnotation,
+  { type: "sticky-note" | "text-box" }
+>;
+
 function AnnotationLayer({
   annotations,
   mode,
@@ -46,11 +51,30 @@ function AnnotationLayer({
 }: AnnotationLayerProps) {
   const transformerRef = useRef<Konva.Transformer | null>(null);
   const nodeRefs = useRef<Record<string, Konva.Node | null>>({});
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftText, setDraftText] = useState("");
 
   const selectedAnnotation = annotations.find(
     (annotation) => annotation.id === selectedId,
   );
   const editable = mode === "annotate";
+  const editingAnnotation = annotations.find(
+    (annotation): annotation is EditableTextAnnotation =>
+      annotation.id === editingId &&
+      (annotation.type === "sticky-note" || annotation.type === "text-box"),
+  );
+
+  useEffect(() => {
+    if (mode !== "annotate") {
+      setEditingId(null);
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+    textareaRef.current?.select();
+  }, [editingId]);
 
   useEffect(() => {
     const transformer = transformerRef.current;
@@ -68,25 +92,52 @@ function AnnotationLayer({
     return null;
   }
 
+  function startTextEdit(annotation: EditableTextAnnotation) {
+    if (!editable) {
+      return;
+    }
+    onSelect(annotation.id);
+    setEditingId(annotation.id);
+    setDraftText(annotation.text);
+  }
+
+  function commitTextEdit() {
+    if (!editingAnnotation) {
+      setEditingId(null);
+      return;
+    }
+
+    if (draftText !== editingAnnotation.text) {
+      onChange({ ...editingAnnotation, text: draftText });
+    }
+    setEditingId(null);
+  }
+
+  function cancelTextEdit() {
+    setEditingId(null);
+    setDraftText("");
+  }
+
   return (
-    <Stage
-      className={[
-        "annotation-stage",
-        editable ? "annotation-stage--editable" : "annotation-stage--view",
-      ]
-        .filter(Boolean)
-        .join(" ")}
-      data-testid="annotation-stage"
-      height={size.height}
-      onMouseDown={(event) => {
-        if (event.target === event.target.getStage()) {
-          onSelect(null);
-        }
-      }}
-      width={size.width}
-    >
-      <Layer>
-        {annotations.map((annotation) => {
+    <div className="annotation-layer">
+      <Stage
+        className={[
+          "annotation-stage",
+          editable ? "annotation-stage--editable" : "annotation-stage--view",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        data-testid="annotation-stage"
+        height={size.height}
+        onMouseDown={(event) => {
+          if (event.target === event.target.getStage()) {
+            onSelect(null);
+          }
+        }}
+        width={size.width}
+      >
+        <Layer>
+          {annotations.map((annotation) => {
           if (annotation.type === "arrow") {
             const startX = px(annotation.x, size.width);
             const startY = px(annotation.y, size.height);
@@ -168,16 +219,8 @@ function AnnotationLayer({
             draggable: editable,
             onClick: () => onSelect(annotation.id),
             onDblClick: () => {
-              if (
-                !editable ||
-                (annotation.type !== "sticky-note" &&
-                  annotation.type !== "text-box")
-              ) {
-                return;
-              }
-              const text = window.prompt("Annotation text", annotation.text);
-              if (text !== null) {
-                onChange({ ...annotation, text });
+              if (annotation.type === "sticky-note" || annotation.type === "text-box") {
+                startTextEdit(annotation);
               }
             },
             onDragEnd: (event: Konva.KonvaEventObject<DragEvent>) =>
@@ -240,12 +283,52 @@ function AnnotationLayer({
               />
             </Group>
           );
-        })}
-        {editable && selectedAnnotation?.type !== "arrow" && (
-          <Transformer ref={transformerRef} rotateEnabled={false} />
-        )}
-      </Layer>
-    </Stage>
+          })}
+          {editable && selectedAnnotation?.type !== "arrow" && !editingAnnotation && (
+            <Transformer ref={transformerRef} rotateEnabled={false} />
+          )}
+        </Layer>
+      </Stage>
+      {editingAnnotation && (
+        <textarea
+          aria-label="Edit annotation text"
+          className={[
+            "annotation-text-editor",
+            editingAnnotation.type === "sticky-note"
+              ? "annotation-text-editor--sticky-note"
+              : "annotation-text-editor--text-box",
+          ].join(" ")}
+          onBlur={commitTextEdit}
+          onChange={(event) => setDraftText(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              cancelTextEdit();
+            }
+            if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+              event.preventDefault();
+              commitTextEdit();
+            }
+          }}
+          ref={textareaRef}
+          style={{
+            backgroundColor:
+              editingAnnotation.type === "sticky-note"
+                ? editingAnnotation.color
+                : "rgba(0, 0, 0, 0.1)",
+            color:
+              editingAnnotation.type === "text-box"
+                ? editingAnnotation.color
+                : "#1f2933",
+            height: px(editingAnnotation.height, size.height),
+            left: px(editingAnnotation.x, size.width),
+            top: px(editingAnnotation.y, size.height),
+            width: px(editingAnnotation.width, size.width),
+          }}
+          value={draftText}
+        />
+      )}
+    </div>
   );
 }
 

@@ -10,6 +10,8 @@
 
 **Implementation Status:** Implemented in task `docs/tasks/0005-slide-annotations.md`. Verification evidence is recorded in the task file.
 
+**Scope Amendment:** Annotation editing is intentionally limited to windowed presenter mode with app chrome visible. Project setup mode no longer exposes annotation controls, and fullscreen presenter mode remains presentation-only.
+
 ---
 
 ## Related Documents

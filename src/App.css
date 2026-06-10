@@ -663,16 +663,6 @@ body {
   font-size: 13px;
 }
 
-.project-annotation-panel {
-  display: grid;
-  grid-template-rows: auto minmax(260px, 48vh);
-  margin-bottom: 18px;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: #050508;
-}
-
 .slide-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

@@ -147,7 +147,6 @@ function App() {
             }}
             onProjectChange={handleProjectChange}
             onSelectSlide={setSelectedIndex}
-            onSlideChange={handleSlideChange}
             project={activeProject}
             selectedIndex={selectedIndex}
           />

@@ -195,6 +195,8 @@ Users can:
 - Edit annotations.
 - Delete annotations.
 
+Annotation mode is only available in windowed presenter mode, where the app chrome and presenter controls are visible. Project setup mode does not expose annotation controls. Fullscreen presenter mode displays saved annotations but does not allow editing.
+
 ## Visibility Toggle
 
 Users must be able to show or hide annotations without deleting them.
@@ -308,6 +310,8 @@ Do not implement these in the first version:
 - [x] Users can select, move, resize where applicable, edit, recolor, and delete annotations.
 - [x] Arrow endpoints can be dragged independently.
 - [x] Users can switch between view mode and annotation mode.
+- [x] Annotation mode is available only in windowed presenter mode with chrome.
+- [x] Project setup mode does not expose annotation controls.
 - [x] Users can hide and show annotations without deleting them.
 - [x] Annotations autosave after create, edit, move, resize, and delete operations.
 - [x] Annotations are stored per slide as project data.
@@ -324,7 +328,7 @@ Do not implement these in the first version:
 - Added a shared `SlideViewport` component that renders the slide iframe and annotation overlay in the same coordinate space.
 - Added `AnnotationLayer` with React-Konva support for sticky notes, text boxes, rectangles, arrows, selection, dragging, resizing, arrow endpoints, and text editing.
 - Added `AnnotationToolbar` for annotation mode, visibility, create actions, color selection, and deletion.
-- Wired annotations into both project preview mode and presenter mode.
+- Wired annotation editing into windowed presenter mode only.
 - Fullscreen presenter mode displays saved annotations but keeps editing disabled.
 
 ## Verification Plan
@@ -332,11 +336,21 @@ Do not implement these in the first version:
 - [x] Add unit tests for annotation data types, relative coordinate conversion, and project persistence.
 - [x] Add component tests for annotation toolbar state, visibility toggle, and editing mode behavior.
 - [x] Add focused integration coverage for project-owned slide annotations.
+- [x] Add component coverage confirming project setup does not expose annotation controls.
+- [x] Add component coverage confirming windowed presenter exposes annotation controls and fullscreen hides them.
 - [x] Verify Rust project deserialization compatibility for old project files.
 - [ ] Manually verify annotation behavior in the Tauri app using local HTML example slides on Windows.
 
 ## Verification Evidence
 
-- `pnpm test`: 15 test files passed, 39 tests passed.
+- `pnpm test`: 16 test files passed, 40 tests passed.
 - `pnpm build`: TypeScript and Vite production build passed. Vite reports the existing chunk-size warning after adding Konva.
 - `cargo test --manifest-path src-tauri/Cargo.toml`: 3 Rust tests passed.
+
+## Scope Amendment
+
+Annotation editing was narrowed after implementation:
+
+- Users annotate only in windowed presenter mode with app chrome visible.
+- Project setup mode is for organizing slides and does not show annotation controls.
+- Fullscreen mode is presentation-only: saved annotations remain visible, editing controls are hidden.

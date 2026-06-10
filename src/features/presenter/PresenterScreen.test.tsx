@@ -54,6 +54,8 @@ describe("PresenterScreen fullscreen", () => {
       />,
     );
 
+    expect(screen.getByRole("button", { name: "Annotate" })).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("button", { name: "Fullscreen" }));
 
     expect(setFullscreen).toHaveBeenCalledWith(true);
@@ -63,6 +65,7 @@ describe("PresenterScreen fullscreen", () => {
     expect(
       screen.queryByRole("button", { name: "Fullscreen" }),
     ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Annotate" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Exit" })).not.toBeInTheDocument();
     expect(screen.getByTitle("Opening")).toHaveClass("slide-frame");
   });

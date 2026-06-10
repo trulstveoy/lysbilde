@@ -1,22 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { convertFileSrc } from "@tauri-apps/api/core";
-
 import Button from "../../components/Button";
-import SlideViewport from "../../components/SlideViewport";
-import {
-  createAnnotation,
-  deleteSlideAnnotation,
-  recolorSlideAnnotation,
-  updateSlideAnnotation,
-  type AnnotationKind,
-} from "../../domain/annotations";
-import type { AnnotationColor, Project, Slide } from "../../domain/project";
+import type { Project } from "../../domain/project";
 import { moveItem, selectedIndexAfterMove } from "../../domain/reorder";
-import AnnotationLayer from "../annotations/AnnotationLayer";
-import AnnotationToolbar, {
-  type AnnotationMode,
-} from "../annotations/AnnotationToolbar";
-import { useElementSize } from "../annotations/useElementSize";
 import SlideGrid from "./SlideGrid";
 import SlideList from "./SlideList";
 
@@ -26,7 +10,6 @@ type ProjectScreenProps = {
   onPresent: () => void;
   onProjectChange: (project: Project) => void;
   onSelectSlide: (index: number) => void;
-  onSlideChange: (slideIndex: number, slide: Slide) => void;
   project: Project;
   selectedIndex: number;
 };
@@ -42,84 +25,14 @@ function ProjectScreen({
   onPresent,
   onProjectChange,
   onSelectSlide,
-  onSlideChange,
   project,
   selectedIndex,
 }: ProjectScreenProps) {
-  const [annotationMode, setAnnotationMode] = useState<AnnotationMode>("view");
-  const [annotationsVisible, setAnnotationsVisible] = useState(true);
-  const [annotationColor, setAnnotationColor] =
-    useState<AnnotationColor>("#fff59d");
-  const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(
-    null,
-  );
-  const viewportRef = useRef<HTMLDivElement | null>(null);
-  const viewportSize = useElementSize(viewportRef);
-  const selectedSlide = project.slides[selectedIndex];
-  const selectedSrc = useMemo(
-    () =>
-      selectedSlide && !selectedSlide.missing
-        ? fileSource(selectedSlide.filePath)
-        : "",
-    [selectedSlide],
-  );
-
-  useEffect(() => {
-    setSelectedAnnotationId(null);
-  }, [selectedSlide?.id]);
-
   function handleReorder(from: number, to: number) {
     onProjectChange(moveSlide(project, from, to));
     onSelectSlide(
       selectedIndexAfterMove(selectedIndex, from, to, project.slides.length),
     );
-  }
-
-  function handleAnnotationChange(annotation: Slide["annotations"][number]) {
-    if (!selectedSlide) {
-      return;
-    }
-    onSlideChange(selectedIndex, updateSlideAnnotation(selectedSlide, annotation));
-  }
-
-  function handleAddAnnotation(type: AnnotationKind) {
-    if (!selectedSlide) {
-      return;
-    }
-    const annotation = createAnnotation(type, {
-      id: annotationId(),
-      x: 0.15,
-      y: 0.15,
-      color: annotationColor,
-    });
-    onSlideChange(selectedIndex, {
-      ...selectedSlide,
-      annotations: [...selectedSlide.annotations, annotation],
-    });
-    setSelectedAnnotationId(annotation.id);
-    setAnnotationMode("annotate");
-    setAnnotationsVisible(true);
-  }
-
-  function handleDeleteSelectedAnnotation() {
-    if (!selectedSlide || !selectedAnnotationId) {
-      return;
-    }
-    onSlideChange(
-      selectedIndex,
-      deleteSlideAnnotation(selectedSlide, selectedAnnotationId),
-    );
-    setSelectedAnnotationId(null);
-  }
-
-  function handleAnnotationColorChange(color: AnnotationColor) {
-    setAnnotationColor(color);
-    if (selectedSlide && selectedAnnotationId) {
-      onSlideChange(
-        selectedIndex,
-        recolorSlideAnnotation(selectedSlide, selectedAnnotationId, color),
-      );
-    }
   }
 
   return (
@@ -159,39 +72,6 @@ function ProjectScreen({
             Some source files are missing. The project data was preserved.
           </p>
         )}
-        {selectedSlide && (
-          <section className="project-annotation-panel">
-            <AnnotationToolbar
-              color={annotationColor}
-              mode={annotationMode}
-              onAdd={handleAddAnnotation}
-              onColorChange={handleAnnotationColorChange}
-              onDeleteSelected={handleDeleteSelectedAnnotation}
-              onModeChange={setAnnotationMode}
-              onVisibilityChange={setAnnotationsVisible}
-              selectedId={selectedAnnotationId}
-              visible={annotationsVisible}
-            />
-            <SlideViewport
-              missing={selectedSlide.missing}
-              missingPath={selectedSlide.filePath}
-              overlay={
-                <AnnotationLayer
-                  annotations={selectedSlide.annotations}
-                  mode={annotationMode}
-                  onChange={handleAnnotationChange}
-                  onSelect={setSelectedAnnotationId}
-                  selectedId={selectedAnnotationId}
-                  size={viewportSize}
-                  visible={annotationsVisible}
-                />
-              }
-              ref={viewportRef}
-              slideTitle={selectedSlide.title}
-              src={selectedSrc}
-            />
-          </section>
-        )}
         <SlideGrid
           onAddSlides={onImport}
           onReorder={handleReorder}
@@ -205,15 +85,3 @@ function ProjectScreen({
 }
 
 export default ProjectScreen;
-
-function fileSource(filePath: string) {
-  try {
-    return convertFileSrc(filePath);
-  } catch {
-    return filePath;
-  }
-}
-
-function annotationId() {
-  return globalThis.crypto?.randomUUID?.() ?? `annotation-${Date.now()}`;
-}

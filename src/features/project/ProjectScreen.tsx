@@ -1,5 +1,6 @@
 import Button from "../../components/Button";
 import type { Project } from "../../domain/project";
+import { moveItem, selectedIndexAfterMove } from "../../domain/reorder";
 import SlideGrid from "./SlideGrid";
 import SlideList from "./SlideList";
 
@@ -14,17 +15,8 @@ type ProjectScreenProps = {
 };
 
 function moveSlide(project: Project, from: number, to: number) {
-  if (from === to || from < 0 || to < 0) {
-    return project;
-  }
-
-  const slides = [...project.slides];
-  const [slide] = slides.splice(from, 1);
-  if (!slide) {
-    return project;
-  }
-  slides.splice(to, 0, slide);
-  return { ...project, slides };
+  const slides = moveItem(project.slides, from, to);
+  return slides === project.slides ? project : { ...project, slides };
 }
 
 function ProjectScreen({
@@ -38,6 +30,9 @@ function ProjectScreen({
 }: ProjectScreenProps) {
   function handleReorder(from: number, to: number) {
     onProjectChange(moveSlide(project, from, to));
+    onSelectSlide(
+      selectedIndexAfterMove(selectedIndex, from, to, project.slides.length),
+    );
   }
 
   return (

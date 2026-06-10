@@ -1,5 +1,7 @@
 import {
   ArrowUpRight,
+  Eye,
+  EyeOff,
   Square,
   StickyNote,
   Trash2,
@@ -14,11 +16,9 @@ export type AnnotationMode = "view" | "annotate";
 
 type AnnotationToolbarProps = {
   color: AnnotationColor;
-  mode: AnnotationMode;
   onAdd: (type: AnnotationKind) => void;
   onColorChange: (color: AnnotationColor) => void;
   onDeleteSelected: () => void;
-  onModeChange: (mode: AnnotationMode) => void;
   onVisibilityChange: (visible: boolean) => void;
   selectedId: string | null;
   visible: boolean;
@@ -33,33 +33,25 @@ const colors: AnnotationColor[] = [
 ];
 
 function AnnotationToolbar(props: AnnotationToolbarProps) {
-  const disabled = props.mode !== "annotate";
-
   return (
     <div className="annotation-toolbar">
       <Button
-        onClick={() =>
-          props.onModeChange(props.mode === "view" ? "annotate" : "view")
-        }
+        aria-label="Show annotations"
+        aria-pressed={props.visible}
+        className="annotation-icon-button"
+        onClick={() => props.onVisibilityChange(!props.visible)}
         size="small"
-        variant={props.mode === "annotate" ? "primary" : "default"}
+        title={props.visible ? "Hide annotations" : "Show annotations"}
       >
-        Annotate
+        {props.visible ? (
+          <Eye aria-hidden="true" size={16} strokeWidth={2} />
+        ) : (
+          <EyeOff aria-hidden="true" size={16} strokeWidth={2} />
+        )}
       </Button>
-      <label className="annotation-toggle">
-        <span>Show annotations</span>
-        <input
-          aria-label="Show annotations"
-          checked={props.visible}
-          onChange={(event) => props.onVisibilityChange(event.target.checked)}
-          role="switch"
-          type="checkbox"
-        />
-      </label>
       <Button
         aria-label="Add sticky note"
         className="annotation-icon-button"
-        disabled={disabled}
         onClick={() => props.onAdd("sticky-note")}
         size="small"
         title="Add sticky note"
@@ -69,7 +61,6 @@ function AnnotationToolbar(props: AnnotationToolbarProps) {
       <Button
         aria-label="Add text box"
         className="annotation-icon-button"
-        disabled={disabled}
         onClick={() => props.onAdd("text-box")}
         size="small"
         title="Add text box"
@@ -79,7 +70,6 @@ function AnnotationToolbar(props: AnnotationToolbarProps) {
       <Button
         aria-label="Add rectangle"
         className="annotation-icon-button"
-        disabled={disabled}
         onClick={() => props.onAdd("rectangle")}
         size="small"
         title="Add rectangle"
@@ -89,7 +79,6 @@ function AnnotationToolbar(props: AnnotationToolbarProps) {
       <Button
         aria-label="Add arrow"
         className="annotation-icon-button"
-        disabled={disabled}
         onClick={() => props.onAdd("arrow")}
         size="small"
         title="Add arrow"
@@ -105,7 +94,6 @@ function AnnotationToolbar(props: AnnotationToolbarProps) {
                 ? "annotation-swatch annotation-swatch--active"
                 : "annotation-swatch"
             }
-            disabled={disabled}
             key={color}
             onClick={() => props.onColorChange(color)}
             style={{ backgroundColor: color }}
@@ -116,7 +104,7 @@ function AnnotationToolbar(props: AnnotationToolbarProps) {
       <Button
         aria-label="Delete selected annotation"
         className="annotation-icon-button"
-        disabled={disabled || !props.selectedId}
+        disabled={!props.selectedId}
         onClick={props.onDeleteSelected}
         size="small"
         title="Delete selected annotation"

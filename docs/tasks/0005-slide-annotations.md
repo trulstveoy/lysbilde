@@ -185,13 +185,13 @@ The selected color must be stored with the annotation.
 
 ## Modes
 
-### View Mode
+### Fullscreen View Mode
 
 - Slides are visible.
 - Annotations are visible.
 - Annotations cannot be edited.
 
-### Annotation Mode
+### Windowed Presenter Mode
 
 Users can:
 
@@ -200,7 +200,7 @@ Users can:
 - Edit annotations.
 - Delete annotations.
 
-Annotation mode is only available in windowed presenter mode, where the app chrome and presenter controls are visible. Project setup mode does not expose annotation controls. Fullscreen presenter mode displays saved annotations but does not allow editing.
+Windowed presenter mode always allows annotation editing while the app chrome and presenter controls are visible. There is no separate Annotate toggle. Project setup mode does not expose annotation controls. Fullscreen presenter mode displays saved annotations but does not allow editing.
 
 ## Visibility Toggle
 
@@ -318,8 +318,9 @@ Do not implement these in the first version:
 - [x] Canvas text is hidden while sticky notes and text boxes are edited inline.
 - [x] Keyboard input inside inline text editors does not advance slides.
 - [x] Arrow endpoints can be dragged independently.
-- [x] Users can switch between view mode and annotation mode.
-- [x] Annotation mode is available only in windowed presenter mode with chrome.
+- [x] Fullscreen view mode is read-only.
+- [x] Annotation editing is available only in windowed presenter mode with chrome.
+- [x] Windowed presenter mode is always annotation-ready without an Annotate toggle.
 - [x] Project setup mode does not expose annotation controls.
 - [x] Users can hide and show annotations without deleting them.
 - [x] Annotations autosave after create, edit, move, resize, and delete operations.
@@ -338,7 +339,8 @@ Do not implement these in the first version:
 - Added `AnnotationLayer` with React-Konva support for sticky notes, text boxes, rectangles, arrows, selection, dragging, resizing, arrow endpoints, and text editing.
 - Text editing uses the standard Konva pattern: a DOM textarea overlay positioned over the canvas text while editing.
 - Added `AnnotationToolbar` for annotation mode, visibility, create actions, color selection, and deletion.
-- Wired annotation editing into windowed presenter mode only.
+- Added icon-only visibility toggle for showing and hiding annotations.
+- Wired annotation editing into windowed presenter mode only, without a separate Annotate toggle.
 - Fullscreen presenter mode displays saved annotations but keeps editing disabled.
 
 ## Verification Plan
@@ -352,6 +354,7 @@ Do not implement these in the first version:
 - [x] Add component coverage confirming canvas text is hidden while inline text editing.
 - [x] Add regression coverage confirming Space inside text fields does not advance slides.
 - [x] Add component coverage confirming annotation tools are icon-only controls with accessible labels.
+- [x] Add component coverage confirming the Annotate toggle is not rendered.
 - [x] Verify Rust project deserialization compatibility for old project files.
 - [ ] Manually verify annotation behavior in the Tauri app using local HTML example slides on Windows.
 
@@ -366,5 +369,6 @@ Do not implement these in the first version:
 Annotation editing was narrowed after implementation:
 
 - Users annotate only in windowed presenter mode with app chrome visible.
+- Windowed presenter mode is always ready for annotation; there is no separate Annotate button.
 - Project setup mode is for organizing slides and does not show annotation controls.
 - Fullscreen mode is presentation-only: saved annotations remain visible, editing controls are hidden.

@@ -946,15 +946,6 @@ body {
   justify-content: center;
 }
 
-.annotation-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-  color: var(--color-muted);
-  font-size: 12px;
-}
-
 .annotation-colors {
   display: inline-flex;
   gap: 5px;

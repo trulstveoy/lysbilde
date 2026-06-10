@@ -54,7 +54,8 @@ describe("PresenterScreen fullscreen", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Annotate" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Annotate" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add sticky note" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Fullscreen" }));
 

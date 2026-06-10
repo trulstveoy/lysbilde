@@ -6,28 +6,27 @@ import AnnotationToolbar from "./AnnotationToolbar";
 afterEach(() => cleanup());
 
 describe("AnnotationToolbar", () => {
-  it("toggles annotation mode and visibility", () => {
-    const onModeChange = vi.fn();
+  it("toggles annotation visibility with an icon button", () => {
     const onVisibilityChange = vi.fn();
 
     render(
       <AnnotationToolbar
         color="#fff59d"
-        mode="view"
         onAdd={vi.fn()}
         onColorChange={vi.fn()}
         onDeleteSelected={vi.fn()}
-        onModeChange={onModeChange}
         onVisibilityChange={onVisibilityChange}
         selectedId={null}
         visible={true}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Annotate" }));
-    fireEvent.click(screen.getByRole("switch", { name: "Show annotations" }));
+    const toggle = screen.getByRole("button", { name: "Show annotations" });
+    fireEvent.click(toggle);
 
-    expect(onModeChange).toHaveBeenCalledWith("annotate");
+    expect(screen.queryByRole("button", { name: "Annotate" })).not.toBeInTheDocument();
+    expect(toggle).toHaveAttribute("title", "Hide annotations");
+    expect(toggle).toHaveTextContent("");
     expect(onVisibilityChange).toHaveBeenCalledWith(false);
   });
 
@@ -38,11 +37,9 @@ describe("AnnotationToolbar", () => {
     render(
       <AnnotationToolbar
         color="#fff59d"
-        mode="annotate"
         onAdd={onAdd}
         onColorChange={vi.fn()}
         onDeleteSelected={onDeleteSelected}
-        onModeChange={vi.fn()}
         onVisibilityChange={vi.fn()}
         selectedId="a1"
         visible={true}
@@ -60,11 +57,9 @@ describe("AnnotationToolbar", () => {
     render(
       <AnnotationToolbar
         color="#fff59d"
-        mode="annotate"
         onAdd={vi.fn()}
         onColorChange={vi.fn()}
         onDeleteSelected={vi.fn()}
-        onModeChange={vi.fn()}
         onVisibilityChange={vi.fn()}
         selectedId="a1"
         visible={true}

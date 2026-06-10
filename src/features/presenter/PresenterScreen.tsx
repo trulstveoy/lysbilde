@@ -18,9 +18,7 @@ import {
   selectSlideIndex,
 } from "../../domain/presenter";
 import AnnotationLayer from "../annotations/AnnotationLayer";
-import AnnotationToolbar, {
-  type AnnotationMode,
-} from "../annotations/AnnotationToolbar";
+import AnnotationToolbar from "../annotations/AnnotationToolbar";
 import { useElementSize } from "../annotations/useElementSize";
 
 type PresenterScreenProps = {
@@ -47,7 +45,6 @@ function PresenterScreen({
   project,
 }: PresenterScreenProps) {
   const [fullscreen, setFullscreen] = useState(false);
-  const [annotationMode, setAnnotationMode] = useState<AnnotationMode>("view");
   const [annotationsVisible, setAnnotationsVisible] = useState(true);
   const [annotationColor, setAnnotationColor] =
     useState<AnnotationColor>("#fff59d");
@@ -97,7 +94,6 @@ function PresenterScreen({
       annotations: [...slide.annotations, annotation],
     });
     setSelectedAnnotationId(annotation.id);
-    setAnnotationMode("annotate");
     setAnnotationsVisible(true);
   }
 
@@ -179,11 +175,6 @@ function PresenterScreen({
     >
       <div
         className="presenter-stage"
-        onClick={() => {
-          if (annotationMode === "view") {
-            next();
-          }
-        }}
       >
         <button
           aria-label="Previous slide"
@@ -201,7 +192,7 @@ function PresenterScreen({
             slide ? (
               <AnnotationLayer
                 annotations={slide.annotations}
-                mode={fullscreen ? "view" : annotationMode}
+                mode={fullscreen ? "view" : "annotate"}
                 onChange={handleAnnotationChange}
                 onSelect={setSelectedAnnotationId}
                 selectedId={selectedAnnotationId}
@@ -231,11 +222,9 @@ function PresenterScreen({
         <>
           <AnnotationToolbar
             color={annotationColor}
-            mode={annotationMode}
             onAdd={handleAddAnnotation}
             onColorChange={handleAnnotationColorChange}
             onDeleteSelected={handleDeleteSelectedAnnotation}
-            onModeChange={setAnnotationMode}
             onVisibilityChange={setAnnotationsVisible}
             selectedId={selectedAnnotationId}
             visible={annotationsVisible}

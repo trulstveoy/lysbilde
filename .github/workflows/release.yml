@@ -160,5 +160,5 @@ jobs:
           releaseDraft: false
           prerelease: true
           generateReleaseNotes: true
-          releaseAssetNamePattern: Lysbilde_[version]_[platform]_[arch][setup][ext]
+          assetNamePattern: Lysbilde_[version]_[platform]_[arch][setup][ext]
           args: ${{ matrix.args }}

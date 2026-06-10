@@ -77,9 +77,18 @@ jobs:
         include:
           - name: Linux
             os: ubuntu-latest
+            artifact_platform: linux
+            artifact_paths: |
+              src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/rpm/*.rpm
+              src-tauri/target/release/bundle/appimage/*.AppImage
             args: ""
           - name: Windows
             os: windows-latest
+            artifact_platform: windows
+            artifact_paths: |
+              src-tauri/target/release/bundle/msi/*.msi
+              src-tauri/target/release/bundle/nsis/*setup.exe
             args: ""
 
     steps:
@@ -124,5 +133,11 @@ jobs:
         with:
           tauriScript: pnpm tauri
           args: ${{ matrix.args }}
-          uploadWorkflowArtifacts: true
-          workflowArtifactNamePattern: lysbilde-[platform]-[arch]-[bundle]
+
+      - name: Upload distributable artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: lysbilde-${{ matrix.artifact_platform }}-${{ github.run_number }}-${{ github.sha }}
+          path: ${{ matrix.artifact_paths }}
+          if-no-files-found: error
+          retention-days: 14

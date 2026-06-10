@@ -2,7 +2,7 @@
 
 ## Status
 
-Plan approved
+In progress
 
 ## Goal
 
@@ -33,4 +33,5 @@ Turn the phase 1 Lysbilde product specification and design package into an imple
 - [x] Review phase 1 design documentation.
 - [x] Create implementation plan under `docs/plans/`.
 - [x] Review and approve plan before code implementation begins.
-- [ ] Execute implementation in follow-up tasks.
+- [x] Execute Task 1: app shell and design tokens.
+- [ ] Execute remaining implementation tasks.

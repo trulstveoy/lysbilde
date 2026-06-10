@@ -1,0 +1,38 @@
+:root {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
+    Arial, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --color-bg: #0c0c10;
+  --color-sidebar: #101014;
+  --color-surface: #17171d;
+  --color-surface-hover: #1e1e27;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-mid: rgba(255, 255, 255, 0.14);
+  --color-text: #eeeef3;
+  --color-muted: #888899;
+  --color-dim: #40404f;
+  --color-accent: oklch(0.65 0.19 265);
+  --color-accent-glow: oklch(0.65 0.19 265 / 0.28);
+  --color-accent-dim: oklch(0.65 0.19 265 / 0.14);
+
+  --radius-window: 14px;
+  --radius-modal: 16px;
+  --radius-card: 12px;
+  --radius-button: 8px;
+  --radius-input: 8px;
+  --radius-menu-item: 7px;
+  --radius-thumbnail: 8px;
+
+  --shadow-window:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 28px 80px rgba(0, 0, 0, 0.9);
+  --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.7);
+  --shadow-primary: 0 4px 14px var(--color-accent-glow);
+}

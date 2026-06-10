@@ -76,23 +76,23 @@ The design should be realized in five deliverable phases. Each phase should be u
 - Create: `src/components/Modal.tsx`
 - Modify: `src-tauri/tauri.conf.json`
 
-- [ ] **Step 1: Create design tokens**
+- [x] **Step 1: Create design tokens**
 
 Add CSS custom properties matching the handoff: background, sidebar, surface, border, text, muted, dim, accent, radii, shadows, and system font.
 
-- [ ] **Step 2: Configure the desktop window**
+- [x] **Step 2: Configure the desktop window**
 
 Set the Tauri main window title to `Lysbilde`, use an app-friendly default size, and evaluate `decorations: false` for the custom titlebar. If native window controls are retained for the first implementation slice, document that decision in this plan before execution.
 
-- [ ] **Step 3: Replace the Hello World screen**
+- [x] **Step 3: Replace the Hello World screen**
 
 Render a structured app shell with a custom titlebar and empty home content. The screen should already use the dark theme and spacing from `HANDOFF.md`.
 
-- [ ] **Step 4: Add shared primitives**
+- [x] **Step 4: Add shared primitives**
 
 Create `TitleBar`, `Button`, and `Modal` components using the design values from the handoff. Keep these components presentational and prop-driven.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -103,7 +103,7 @@ pnpm tauri dev
 
 Expected: the app builds, opens as Lysbilde, and shows the branded empty shell instead of `Hello World`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src src-tauri/tauri.conf.json

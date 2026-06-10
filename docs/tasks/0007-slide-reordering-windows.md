@@ -6,7 +6,7 @@ Make slide reordering by drag-and-drop work reliably, especially on Windows, so 
 
 ## Status
 
-Implemented; local verification passed. Manual Windows verification pending.
+Implemented and verified on Windows.
 
 ## Related Plan
 
@@ -91,4 +91,7 @@ The current app has `ProjectScreen`, `SlideList`, `SlideGrid`, and `moveSlide` /
 - `pnpm test`: passed.
 - `pnpm build`: passed.
 
-Manual Windows WebView2 verification has not been run in this environment.
+## Windows Verification
+
+- Manual Windows WebView2 verification was completed by the user.
+- Result: OK.

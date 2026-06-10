@@ -35,6 +35,26 @@ function rel(value: number, total: number) {
   return Math.max(0, Math.min(1, Number((value / total).toFixed(4))));
 }
 
+function resizeAnnotationFromNode<T extends Exclude<SlideAnnotation, { type: "arrow" }>>(
+  annotation: T,
+  node: Konva.Node,
+  size: { width: number; height: number },
+): T {
+  const nextWidth = Math.max(24, node.width() * node.scaleX());
+  const nextHeight = Math.max(24, node.height() * node.scaleY());
+  node.width(nextWidth);
+  node.height(nextHeight);
+  node.scale({ x: 1, y: 1 });
+
+  return {
+    ...annotation,
+    x: rel(node.x(), size.width),
+    y: rel(node.y(), size.height),
+    width: rel(nextWidth, size.width),
+    height: rel(nextHeight, size.height),
+  };
+}
+
 type EditableTextAnnotation = Extract<
   SlideAnnotation,
   { type: "sticky-note" | "text-box" }
@@ -217,6 +237,7 @@ function AnnotationLayer({
           const isEditingText = annotation.id === editingId;
 
           const common = {
+            "data-testid": `annotation-${annotation.id}`,
             draggable: editable,
             onClick: () => onSelect(annotation.id),
             onDblClick: () => {
@@ -230,18 +251,10 @@ function AnnotationLayer({
                 x: rel(event.target.x(), size.width),
                 y: rel(event.target.y(), size.height),
               }),
+            onTransform: (event: Konva.KonvaEventObject<Event>) =>
+              onChange(resizeAnnotationFromNode(annotation, event.target, size)),
             onTransformEnd: (event: Konva.KonvaEventObject<Event>) => {
-              const node = event.target;
-              const nextWidth = Math.max(24, node.width() * node.scaleX());
-              const nextHeight = Math.max(24, node.height() * node.scaleY());
-              node.scale({ x: 1, y: 1 });
-              onChange({
-                ...annotation,
-                x: rel(node.x(), size.width),
-                y: rel(node.y(), size.height),
-                width: rel(nextWidth, size.width),
-                height: rel(nextHeight, size.height),
-              });
+              onChange(resizeAnnotationFromNode(annotation, event.target, size));
             },
             ref: (node: Konva.Node | null) => {
               nodeRefs.current[annotation.id] = node;

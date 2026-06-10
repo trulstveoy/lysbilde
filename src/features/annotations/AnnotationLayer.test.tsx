@@ -17,15 +17,34 @@ vi.mock("react-konva", () => {
     "data-testid": testId,
     onClick,
     onDblClick,
+    onTransform,
     text,
   }: {
     children?: ReactNode;
     "data-testid"?: string;
     onClick?: () => void;
     onDblClick?: () => void;
+    onTransform?: (event: unknown) => void;
     text?: string;
   }) => (
-    <div data-testid={testId} onClick={onClick} onDoubleClick={onDblClick}>
+    <div
+      data-testid={testId}
+      onClick={onClick}
+      onDoubleClick={onDblClick}
+      onMouseEnter={() =>
+        onTransform?.({
+          target: {
+            height: () => 75,
+            scale: vi.fn(),
+            scaleX: () => 1.5,
+            scaleY: () => 1.2,
+            width: () => 200,
+            x: () => 100,
+            y: () => 50,
+          },
+        })
+      }
+    >
       {text}
       {children}
     </div>
@@ -166,5 +185,43 @@ describe("AnnotationLayer", () => {
     expect(
       within(screen.getByTestId("annotation-stage")).queryByText("Only once"),
     ).not.toBeInTheDocument();
+  });
+
+  it("keeps text size fixed while resizing text annotations", () => {
+    const onChange = vi.fn();
+    const annotations: SlideAnnotation[] = [
+      {
+        id: "text-1",
+        type: "text-box",
+        x: 0.1,
+        y: 0.1,
+        width: 0.2,
+        height: 0.15,
+        text: "Resize me",
+        color: "#1976d2",
+      },
+    ];
+
+    render(
+      <AnnotationLayer
+        annotations={annotations}
+        mode="annotate"
+        onChange={onChange}
+        onSelect={vi.fn()}
+        selectedId="text-1"
+        size={{ width: 1000, height: 500 }}
+        visible={true}
+      />,
+    );
+
+    fireEvent.mouseEnter(screen.getByTestId("annotation-text-1"));
+
+    expect(onChange).toHaveBeenCalledWith({
+      ...annotations[0],
+      x: 0.1,
+      y: 0.1,
+      width: 0.3,
+      height: 0.18,
+    });
   });
 });
